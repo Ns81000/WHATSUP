@@ -664,26 +664,43 @@ PLOT: {plot if plot else 'Not available - see instructions below'}
 
 FORMATTING REQUIREMENTS (VERY IMPORTANT):
 1. Write 800-1200 words of philosophical analysis
-2. Use RICH MARKDOWN formatting:
-   - Start with a powerful opening quote using > blockquote
-   - Use ## Section Headers to organize content (3-4 sections)
-   - Include > blockquotes for memorable quotes from the film or philosophers
-   - Use **bold** for emphasis on key philosophical concepts
-   - Use *italics* for film titles and foreign terms
-   - Add horizontal rules --- between major sections
-   - Embed the body images between sections (see image instructions above)
+2. Use RICH MARKDOWN formatting throughout - make it visually stunning:
+
+   TEXT FORMATTING:
+   - **bold** for key philosophical concepts
+   - *italics* for film titles, foreign terms, and emphasis
+   - ***bold italics*** for powerful statements
+   
+   BLOCKQUOTES (use these prompt styles for variety):
+   - Opening quote: > "Quote" followed by newline and {{: .prompt-tip }}
+   - Key insight: > Important insight... followed by newline and {{: .prompt-info }}
+   - Warning/dark theme: > Dark observation... followed by newline and {{: .prompt-warning }}
+   - Profound realization: > Existential truth... followed by newline and {{: .prompt-danger }}
+   
+   STRUCTURE ELEMENTS:
+   - ## Section Headers (use 3-4 compelling section titles)
+   - --- horizontal rules between major sections
+   - Bullet lists with - for listing themes or concepts
+   - Numbered lists with 1. 2. 3. for sequences or steps
+   
+   IMAGES (embed between sections):
+   - Use: ![Description](path){{: .rounded-10 w-75 .shadow}}
+   - Add _italic caption below image_
    
 3. STRUCTURE your post like this:
-   - Opening: A philosophical hook or profound quote (blockquote)
+   - Opening: A philosophical quote with {{: .prompt-tip }}
+   - First paragraph: Hook the reader with elegant prose
    - Section 1 (##): The core philosophical theme
-   {"- [IMAGE 1 here]" if body_images else ""}
-   - Section 2 (##): Character study or ethical dilemmas  
-   {"- [IMAGE 2 here]" if len(body_images) > 1 else ""}
-   - Section 3 (##): Metaphysical/existential exploration
-   {"- [IMAGE 3 here]" if len(body_images) > 2 else ""}
-   - Closing: A thought-provoking conclusion or question
-   {"" if body_images else "- NOTE: No body images available for this post. Do NOT include any image markdown."}
-   
+   {"- [IMAGE 1 with caption]" if body_images else ""}
+   - Section 2 (##): Character study or ethical dilemmas
+   - Use a {{: .prompt-info }} blockquote for a key insight
+   {"- [IMAGE 2 with caption]" if len(body_images) > 1 else ""}
+   - Section 3 (##): Metaphysical/existential exploration  
+   {"- [IMAGE 3 with caption]" if len(body_images) > 2 else ""}
+   - Closing section with {{: .prompt-warning }} or regular blockquote
+   - Final thought-provoking question or statement
+   {"" if body_images else "- NOTE: No body images available. Do NOT include any image markdown."}
+
 4. Explore existential, metaphysical, or ethical themes - go beyond plot summaries
 5. Connect the work to broader human experiences and philosophical questions
 6. Use elegant prose with occasional poetic flourishes
@@ -704,33 +721,48 @@ tags: [mood1, mood2, mood3]
 description: "Compelling meta description exploring the film's themes (150-160 chars)"
 ---
 
-> "A profound opening quote that sets the philosophical tone" — Attribution
+> "A profound opening quote that captures the essence of the work" — Philosopher or Character
 {{: .prompt-tip }}
 
-[Opening paragraph with beautiful prose...]
+[Opening paragraph with ***powerful prose*** that hooks the reader into the philosophical journey...]
 
-## First Section Title
+## The Philosophical Core
 
-[Content with **bold concepts** and *italicized terms*...]
+[Rich content exploring the **central theme** with depth and nuance. Use *film title* in italics. Connect to broader philosophical ideas...]
+
+Key themes to explore:
+- **Theme one** — its significance
+- **Theme two** — its implications  
+- **Theme three** — its resonance
 
 {"![A compelling scene from " + title + "](" + body_images[0] + "){: .rounded-10 w-75 .shadow}" if body_images else ""}
-_A caption describing the image's significance_
+{"_A thoughtful caption describing the scene's deeper meaning_" if body_images else ""}
 
-## Second Section Title
+## The Human Condition
 
-[More philosophical exploration...]
+[Explore character psychology, moral dilemmas, and ethical questions...]
+
+> This is where we discover the true weight of choice — not in the outcome, but in the *becoming*.
+{{: .prompt-info }}
+
+[Continue with analysis of how characters embody philosophical concepts...]
 
 {"![Another powerful moment](" + body_images[1] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 1 else ""}
+{"_Visual poetry captured in a single frame_" if len(body_images) > 1 else ""}
 
-## Third Section Title  
+## Beyond the Surface
 
-[Deeper existential themes...]
+[Deeper existential, metaphysical themes. What questions does this work dare to ask?]
 
 {"![The visual metaphor](" + body_images[2] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 2 else ""}
+{"_The imagery speaks what words cannot express_" if len(body_images) > 2 else ""}
 
 ---
 
-> "A closing thought or question that lingers with the reader"
+> "A haunting closing thought that lingers with the reader long after..." — Source
+{{: .prompt-warning }}
+
+[Final reflection — what does this work ultimately ask of us? What mirror does it hold up to our existence?]
 
 {"## Where to Watch" if streaming_providers else ""}
 {streaming_section if streaming_section else ""}
@@ -740,28 +772,47 @@ _A caption describing the image's significance_
 *What's Up? explores the philosophical depths of cinema.*
 """
     
-    try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.85,
-                max_output_tokens=4096,
+    max_retries = 3
+    retry_delay = 10  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.85,
+                    max_output_tokens=4096,
+                )
             )
-        )
-        
-        content = response.text.strip()
-        
-        # Clean up any markdown code blocks wrapping
-        if content.startswith('```'):
-            content = re.sub(r'^```(?:markdown|md)?\s*\n', '', content)
-            content = re.sub(r'\n```\s*$', '', content)
-        
-        return content
-        
-    except Exception as e:
-        print(f"❌ Gemini API error: {e}")
-        return None
+            
+            content = response.text.strip()
+            
+            # Clean up any markdown code blocks wrapping
+            if content.startswith('```'):
+                content = re.sub(r'^```(?:markdown|md)?\s*\n', '', content)
+                content = re.sub(r'\n```\s*$', '', content)
+            
+            return content
+            
+        except Exception as e:
+            error_msg = str(e)
+            print(f"⚠️ Gemini API error (attempt {attempt + 1}/{max_retries}): {error_msg}")
+            
+            # Check if it's a retryable error (503, 429, overloaded)
+            if any(code in error_msg for code in ['503', '429', 'overloaded', 'UNAVAILABLE', 'quota']):
+                if attempt < max_retries - 1:
+                    print(f"   ⏳ Waiting {retry_delay}s before retry...")
+                    import time
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                    continue
+            
+            print(f"❌ Gemini API error: {e}")
+            return None
+    
+    print(f"❌ All {max_retries} attempts failed")
+    return None
 
 
 # ==================== METADATA TRACKING ====================
