@@ -40,3 +40,6 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Admin dashboard (local only)
+admin/
