@@ -136,10 +136,24 @@ def get_week_posts_from_history():
         return []
     
     # Get current week's date range (Monday to Sunday)
+    # If it's Sunday, use current week. If past Sunday, use LAST week.
     today = datetime.now()
-    # Calculate Monday of current week
-    monday = today - timedelta(days=today.weekday())
+    
+    # If today is Monday-Saturday, get THIS week's Monday
+    # If today is Sunday, get THIS week's Monday (current week being completed)
+    # This ensures we always capture Mon-Sun of the week being recapped
+    if today.weekday() == 6:  # Sunday
+        # Use THIS week's Monday (the week we're completing)
+        monday = today - timedelta(days=6)
+    else:
+        # For any other day, calculate the most recent Monday
+        monday = today - timedelta(days=today.weekday())
+    
     monday = monday.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Also calculate Sunday (end of the recap week)
+    sunday = monday + timedelta(days=6)
+    sunday = sunday.replace(hour=23, minute=59, second=59, microsecond=999999)
     
     week_posts = []
     
@@ -166,8 +180,8 @@ def get_week_posts_from_history():
                     # Parse date: 2026-02-02 09:20
                     post_date = datetime.strptime(date_part.strip(), '%Y-%m-%d %H:%M')
                     
-                    # Check if this post is from current week
-                    if post_date >= monday:
+                    # Check if this post is from the week being recapped (Mon-Sun inclusive)
+                    if monday <= post_date <= sunday:
                         week_posts.append({
                             'imdb_id': imdb_id,
                             'title': title,
