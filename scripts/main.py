@@ -189,9 +189,13 @@ def send_weekly_email_summary(week_posts):
         print("⚠️ No posts this week to summarize")
         return False
     
+    week_num = datetime.now().isocalendar()[1]
+    year = datetime.now().year
+    recap_token = f"RECAP_W{week_num}_{year}"
+    
     try:
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"📊 What's Up? Weekly Summary - {len(week_posts)} Posts"
+        msg['Subject'] = f"🌟 What's Up? Weekly Summary - {len(week_posts)} Posts"
         msg['From'] = SMTP_EMAIL
         msg['To'] = NOTIFICATION_EMAIL
         
@@ -210,10 +214,12 @@ def send_weekly_email_summary(week_posts):
         <html>
         <head>
             <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 h2 {{ color: #6366f1; }}
                 ul {{ list-style-type: none; padding: 0; }}
                 li {{ margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 3px solid #6366f1; }}
+                .highlight {{ background: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0; }}
+                .code {{ background: #1f2937; color: #10b981; padding: 3px 8px; border-radius: 4px; font-family: monospace; }}
                 .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }}
             </style>
         </head>
@@ -223,10 +229,22 @@ def send_weekly_email_summary(week_posts):
             <ul>
                 {posts_html}
             </ul>
+            
+            <div class="highlight">
+                <h3>🌟 Sunday Special - Weekly Recap Publishing Now</h3>
+                <p><strong>Optional:</strong> Upload a custom hero image for this week's recap!</p>
+                <p>If you'd like to add a beautiful hero image:</p>
+                <ol>
+                    <li>Upload an image to Telegram</li>
+                    <li>Use this caption: <span class="code">{recap_token}</span></li>
+                    <li>Requirements: Landscape image (1920px+ wide) representing the week's philosophical journey</li>
+                </ol>
+                <p><small>If no image is uploaded, the recap will publish without a custom hero image (perfectly fine!)</small></p>
+            </div>
+            
             <div class="footer">
-                <p><strong>🌟 Sunday Special is coming!</strong></p>
-                <p>Please upload a hero image for this week's recap post via Telegram.</p>
-                <p>The weekly journey post will weave together all these films into one philosophical narrative.</p>
+                <p>The weekly journey post will weave together all {len(week_posts)} films into one philosophical narrative.</p>
+                <p><em>This is an automated notification from What's Up? blog automation system.</em></p>
             </div>
         </body>
         </html>
@@ -821,6 +839,22 @@ def generate_weekly_recap_post(week_posts, hero_image_path):
         date_str = post['date'].strftime('%A, %B %d')
         posts_summary += f"{idx}. **{post['title']}** ({date_str})\n"
     
+    # Handle case where no hero image is provided
+    image_section = ""
+    hero_frontmatter = ""
+    
+    if hero_image_path:
+        image_section = f"""
+![This week's cinematic journey](/{hero_image_path}){{{{: .rounded-10 w-100 .shadow}}}}
+_A visual reflection of the week's philosophical explorations_
+"""
+        hero_frontmatter = f"""image:
+  path: /{hero_image_path}
+  alt: "A cinematic representation of this week's philosophical journey"
+"""
+    else:
+        hero_frontmatter = "# No hero image available"
+    
     prompt = f"""
 You are a masterful film philosopher crafting the ultimate weekly synthesis for "What's Up?" - 
 a sophisticated platform exploring cinema's deeper meanings.
@@ -829,122 +863,163 @@ This week, we published {len(week_posts)} philosophical analyses:
 
 {posts_summary}
 
-Your task: Create a **stunning weekly journey post** that weaves these films/series into ONE cohesive philosophical narrative.
+Your task: Create a **STUNNING, BEAUTIFULLY FORMATTED weekly journey post** that weaves these films/series into ONE cohesive philosophical narrative.
 
 CRITICAL REQUIREMENTS:
 
 1. **Title**: Create a poetic, evocative title that captures the week's theme
-   Example: "The Week of Wandering Souls: A Journey Through Loss and Redemption"
+   Example: "Echoes of Eternity: A Week Through Time, Memory, and Becoming"
 
 2. **Find the Thread**: Identify the common philosophical themes across all {len(week_posts)} works
    - What existential questions connect them?
    - What human truths do they all explore?
    - How do they dialogue with each other?
 
-3. **Structure** (1200-1500 words):
+3. **Structure** (1500-2000 words):
    
-   **Opening**:
-   - Profound opening quote (with {{{{: .prompt-tip }}}})
-   - Introduce the week's thematic journey with ***powerful prose***
+   **Opening** (3-4 paragraphs):
+   - Start with a POWERFUL opening quote from a famous philosopher (Nietzsche, Camus, Sartre, Plato, etc.) with {{{{: .prompt-tip }}}}
+   - Second paragraph: Introduce the week's thematic journey with ***magnificent prose***
+   - Third paragraph: Establish the philosophical context
+   - Fourth paragraph: Preview how the films connect
    
-   **Section 1: The Philosophical Thread** (##)
-   - Reveal the connecting theme
-   - Use a {{{{: .prompt-info }}}} blockquote for a key insight
-   - Reference 2-3 films to establish the pattern
-   
-   **Section 2: The Journey Through Cinema** (##)
-   - Weave through ALL {len(week_posts)} works chronologically
-   - For each film: 1-2 sentences connecting to the theme
-   - Use bullet points for the journey:
-     - **Film 1**: How it explores the theme
-     - **Film 2**: Its unique perspective  
-     - **Film 3**: Its contribution to the narrative
-   - Use *italics* for film titles
-   
-   **Section 3: The Human Condition** (##)  
-   - Deeper philosophical analysis
-   - Connect to real human experiences
-   - Use a {{{{: .prompt-warning }}}} or {{{{: .prompt-danger }}}} blockquote
-   
-   **Closing**:
-   - Synthesize the week's wisdom
-   - End with a thought-provoking question or reflection
-   - Final blockquote (any prompt style)
-
-4. **Visual Structure**:
-   - Use **bold** for key concepts
-   - Use ***bold italics*** for powerful statements
+   **Section 1: The Philosophical Thread** (##) (4-5 paragraphs):
+   - Reveal the connecting theme with rich, evocative language
+   - Use a quote from a philosopher or film theorist (with {{{{: .prompt-info }}}})
+   - Reference 3-4 films to establish the pattern
+   - Use **bold** for key philosophical concepts
    - Use *italics* for all film titles
-   - Embed the hero image after Section 1 with:
-     ![This week's cinematic journey](/{hero_image_path}){{{{: .rounded-10 w-100 .shadow}}}}
-     _A visual reflection of the week's philosophical explorations_
-   - Use bullet lists for the journey through films
-   - Use --- horizontal rules between major sections
+   
+   {image_section if hero_image_path else ""}
+   
+   **Section 2: The Journey Through Cinema** (##) (Comprehensive):
+   - Create a beautiful narrative weaving through ALL {len(week_posts)} works
+   - For each film/series:
+     - **Bold title** followed by 2-3 sentences of philosophical insight
+     - Connect each work to the overarching theme
+     - Use *film titles in italics* when mentioning them
+   - Group related films into sub-themes if natural patterns emerge
+   - Include a profound quote (with {{{{: .prompt-info }}}}) in the middle of this section
+   
+   **Section 3: Deeper Waters - The Human Condition** (##) (5-6 paragraphs):
+   - Profound philosophical analysis
+   - Connect themes to universal human experiences
+   - Use a powerful quote from an existentialist philosopher ({{{{: .prompt-warning }}}})
+   - Explore paradoxes, contradictions, and tensions
+   - Reference specific films as illustrations
+   
+   **Section 4: The Synthesis** (##) (3-4 paragraphs):
+   - Bring all threads together
+   - What ultimate truth emerged from this week's journey?
+   - Use a final profound quote ({{{{: .prompt-danger }}}} or {{{{: .prompt-tip }}}})
+   
+   **Closing** (2 paragraphs):
+   - Synthesize the week's wisdom
+   - End with thought-provoking questions that invite reader reflection
+   - Final blockquote with poetic reflection
 
-5. **Mood Tags**: Select 3 that capture the week's overall emotional journey
+4. **ABUNDANT QUOTES** - Include at LEAST 6-8 blockquotes throughout:
+   - Philosophers: Nietzsche, Camus, Sartre, Kierkegaard, Heidegger, etc.
+   - Film theorists: Bazin, Tarkovsky, Bergman, etc.
+   - Literary figures: Kafka, Dostoevsky, Borges, etc.
+   - Use these prompt styles for variety:
+     * {{{{: .prompt-tip }}}} - for wisdom, insight, enlightenment
+     * {{{{: .prompt-info }}}} - for key observations, patterns
+     * {{{{: .prompt-warning }}}} - for darker themes, tensions
+     * {{{{: .prompt-danger }}}} - for profound existential truths
 
-6. **Description**: Meta description (150-160 chars) about the week's philosophical journey
+5. **Visual Structure**:
+   - Use **bold** generously for key philosophical concepts
+   - Use ***bold italics*** for POWERFUL, striking statements
+   - Use *italics* for ALL film titles without exception
+   - Use bullet lists with - only when listing multiple related items
+   - Use --- horizontal rules between major sections (at least 3-4 total)
+   - Embed blockquotes liberally throughout
+
+6. **Mood Tags**: Select 3 from [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
+   Existential, Romantic, Heroic, Dystopian, Surreal, Profound, Transcendent]
+
+7. **Description**: Compelling meta description (150-160 chars) about the week's philosophical journey
 
 OUTPUT FORMAT:
 
 ---
-title: "Your Poetic Weekly Title Here"
+title: "Your Poetic Weekly Title Here - Make it BEAUTIFUL"
 date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S +0530')}
 categories: [Weekly Recap, Philosophical]
 tags: [mood1, mood2, mood3]
-image:
-  path: /{hero_image_path}
-  alt: "A cinematic representation of this week's philosophical journey"
-description: "Compelling meta description about the week's thematic journey"
+{hero_frontmatter}
+description: "Compelling meta description capturing the week's essence"
 ---
 
-> "A profound quote that captures the essence of this week's journey" — Philosopher
+> "A profound, carefully selected quote from a famous philosopher that perfectly captures this week's journey" — Philosopher Name
 {{{{: .prompt-tip }}}}
 
-[Opening paragraph with ***magnificent prose*** that introduces the week's common thread and invites readers into the journey...]
+[Opening paragraph with ***magnificent, poetic prose*** that immediately draws the reader in...]
 
-This week, we embarked on a cinematic odyssey through {len(week_posts)} remarkable works, each offering a unique lens through which to view [the connecting theme]. From [first film] to [last film], a pattern emerged—a **philosophical tapestry** woven with threads of [theme].
+[Second paragraph establishing philosophical context...]
+
+[Third paragraph previewing the journey ahead...]
+
+This week, we embarked on a cinematic odyssey through **{len(week_posts)} remarkable works**, each offering a unique lens through which to view [the connecting theme]. From *[first film]* to *[last film]*, a pattern emerged—a **philosophical tapestry** woven with threads of [theme], [theme], and ultimately, [ultimate theme].
 
 ## The Philosophical Thread
 
-[Reveal and explore the common theme that connects all works. Use rich, evocative language...]
+[Rich, evocative exploration of the common theme. Use sophisticated language, philosophical terminology...]
 
-> This is where cinema reveals its deepest truth: that every story, regardless of setting or genre, speaks to [universal theme].
+> "Another carefully chosen quote that deepens our understanding of the theme" — Philosopher
 {{{{: .prompt-info }}}}
 
-[Continue exploring with 2-3 film examples...]
+[Continue exploring with detailed film examples. Be specific, be profound...]
 
-![This week's cinematic journey](/{hero_image_path}){{{{: .rounded-10 w-100 .shadow}}}}
-_A visual reflection of the week's philosophical explorations_
+{image_section if hero_image_path else ""}
 
 ## The Journey Through Cinema
 
-Our weekly odyssey unfolded thus:
+[Beautiful narrative introduction to the week's journey...]
 
-- **Film 1**: [Connection to theme in 1-2 compelling sentences]
-- **Film 2**: [How it deepens or challenges the theme]
-- **Film 3**: [Its unique perspective]
-- **Film 4**: [How it synthesizes previous works]
-[Continue for all {len(week_posts)} works...]
+**[Film 1 Title]**: [2-3 sentences of philosophical insight connecting to the theme. Use rich language...]
 
-Each work added its voice to a growing chorus, building toward a profound realization about [theme].
+**[Film 2 Title]**: [How this work deepens or challenges the established theme...]
+
+**[Film 3 Title]**: [Its unique perspective on the central question...]
+
+[Continue for ALL {len(week_posts)} works with equal attention and depth...]
+
+> "A mid-section quote that ties these works together" — Film Theorist or Philosopher
+{{{{: .prompt-info }}}}
+
+Each work added its voice to a growing chorus, building toward a profound realization about **[the ultimate theme]**.
 
 ---
 
-## The Human Condition
+## Deeper Waters: The Human Condition
 
-[Deep philosophical analysis connecting to real human experiences...]
+[Deep, sophisticated philosophical analysis. Connect to real human experiences with nuance...]
 
-> "Quote or insight that captures the existential weight of the week's theme"
+[Explore paradoxes, tensions, contradictions that emerged from the week's viewing...]
+
+> "A darker, more challenging quote about the human condition" — Existentialist Philosopher
 {{{{: .prompt-warning }}}}
 
-[Continue with rich analysis...]
+[Continue with rich, layered analysis referencing specific films...]
 
 ---
 
-What patterns do you notice emerging in your own life's narrative? How do these {len(week_posts)} stories mirror your journey?
+## The Synthesis
 
-> Final reflective thought
+[Bring all threads together. What ultimate truth emerged? Be profound, be specific...]
+
+> "A final, powerful quote that captures the synthesis" — Philosopher
+{{{{: .prompt-danger }}}}
+
+[Conclude the synthesis with elegant prose...]
+
+---
+
+What patterns do you notice emerging in your own life's narrative? How do these {len(week_posts)} stories mirror your journey through **[theme]** and **[theme]**? Which film resonated most deeply with your current existential state?
+
+> "A poetic, reflective closing thought that lingers" — Philosopher or Poet
 {{{{: .prompt-tip }}}}
 
 """
@@ -1280,64 +1355,92 @@ def process_sunday_special():
     print("\n📧 Sending weekly summary email...")
     send_weekly_email_summary(week_posts)
     
-    # Step 3: Request hero image via Telegram
-    print("\n📱 Requesting hero image via Telegram...")
-    telegram_msg = f"""
-🌟 **SUNDAY SPECIAL - WEEKLY RECAP**
-
-This week, we published **{len(week_posts)} philosophical analyses**:
-
-{chr(10).join([f"{i+1}. {p['title']}" for i, p in enumerate(week_posts)])}
-
-📸 **Please upload a HERO image for the weekly recap post**
-
-Requirements:
-- Landscape/widescreen image
-- Should represent the week's thematic journey
-- High quality (1920px+ wide recommended)
-
-⏰ I'll wait 30 minutes for your upload.
-
-_Reply with your image. It will be processed automatically._
-"""
-    
-    if not send_telegram_photo_request(telegram_msg):
-        print("❌ Failed to send Telegram request")
-        return False
-    
-    # Step 4: Wait for user to upload photo
-    print("\n⏳ Waiting for hero image upload (timeout: 30 minutes)...")
-    image_data, message_id = wait_for_telegram_photo(timeout_minutes=30)
-    
-    if not image_data:
-        print("❌ No image received within timeout period")
-        # Send reminder
-        send_telegram_message("⚠️ Timeout: No image received. Sunday special cancelled.")
-        return False
-    
-    print("✅ Hero image received!")
-    
-    # Step 5: Process and save the hero image
-    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-    
-    # Generate unique filename for weekly recap
+    # Step 3: Check Telegram for manually uploaded hero image
     week_num = datetime.now().isocalendar()[1]
     year = datetime.now().year
-    hero_filename = f"week{week_num}_{year}_recap_hero.webp"
-    hero_path = IMAGES_DIR / hero_filename
+    recap_token = f"RECAP_W{week_num}_{year}"
     
-    print(f"📸 Processing hero image...")
-    if not process_and_save_image(image_data, hero_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
-        print("❌ Failed to process hero image")
-        return False
+    print(f"\n🔍 Checking Telegram for manual hero image upload (token: {recap_token})...")
     
-    # Step 6: Delete the Telegram message
-    if message_id:
-        delete_telegram_message(message_id)
+    # Check if user already uploaded an image with the recap token
+    telegram_images = {}
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+        try:
+            response = requests.get(url, timeout=30)
+            updates = response.json().get('result', [])
+            
+            for update in updates:
+                message = update.get('message', {})
+                caption = message.get('caption', '')
+                
+                if recap_token in caption.upper():
+                    photos = message.get('photo', [])
+                    if photos:
+                        file_id = photos[-1]['file_id']
+                        
+                        # Get file and download
+                        file_info_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile"
+                        file_info = requests.get(file_info_url, params={'file_id': file_id}, timeout=10).json()
+                        file_path = file_info.get('result', {}).get('file_path')
+                        
+                        if file_path:
+                            file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
+                            image_data = download_image(file_url)
+                            if image_data:
+                                telegram_images['hero'] = image_data
+                                print(f"✅ Found manually uploaded hero image!")
+                                
+                                # Delete the message
+                                delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage"
+                                requests.post(delete_url, json={
+                                    'chat_id': TELEGRAM_CHAT_ID,
+                                    'message_id': message['message_id']
+                                }, timeout=10)
+                                break
+        except Exception as e:
+            print(f"⚠️ Telegram check error: {e}")
     
-    # Step 7: Generate the weekly recap content with Gemini
+    # Step 4: If no manual upload, send notification for next time
+    if not telegram_images:
+        print("⚠️ No hero image found via Telegram")
+        print("   Sending notification for future Sunday specials...")
+        
+        telegram_msg = f"""
+🌟 **SUNDAY SPECIAL - Image Notification**
+
+This week's recap ({len(week_posts)} posts) was published without a custom hero image.
+
+📸 **For next week's recap**, upload a hero image with this caption:
+`{recap_token}`
+
+Requirements:
+- Landscape/widescreen image (1920px+ wide)
+- Should represent the week's philosophical journey
+- Upload anytime before next Sunday
+
+_The system will auto-detect and use it for the recap post._
+"""
+        send_telegram_message(telegram_msg)
+    
+    # Step 5: Process hero image if available
+    hero_image_relative = None
+    
+    if telegram_images and 'hero' in telegram_images:
+        IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+        
+        hero_filename = f"week{week_num}_{year}_recap_hero.webp"
+        hero_path = IMAGES_DIR / hero_filename
+        
+        print(f"📸 Processing hero image...")
+        if process_and_save_image(telegram_images['hero'], hero_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
+            hero_image_relative = str(hero_path.relative_to(ROOT_DIR))
+            print(f"✅ Hero image saved: {hero_filename}")
+        else:
+            print("⚠️ Failed to process hero image - continuing without it")
+    
+    # Step 6: Generate the weekly recap content with Gemini
     print("\n🤖 Generating weekly recap content with Gemini AI...")
-    hero_image_relative = str(hero_path.relative_to(ROOT_DIR))
     
     content = generate_weekly_recap_post(week_posts, hero_image_relative)
     
@@ -1345,7 +1448,7 @@ _Reply with your image. It will be processed automatically._
         print("❌ Failed to generate weekly recap content")
         return False
     
-    # Step 8: Save the blog post
+    # Step 7: Save the blog post
     print("\n💾 Saving weekly recap post...")
     
     # Generate filename
@@ -1362,14 +1465,17 @@ _Reply with your image. It will be processed automatically._
     
     print(f"✅ Weekly recap post saved: {post_filename}")
     
-    # Step 9: Add to history
+    # Step 8: Add to history
     recap_title = f"Weekly Recap - Week {week_num}"
     save_to_history(f"recap_w{week_num}_{year}", recap_title)
     
     print("\n" + "="*60)
     print(f"🎉 Sunday special completed successfully!")
     print(f"   Post: {post_filename}")
-    print(f"   Image: {hero_filename}")
+    if hero_image_relative:
+        print(f"   Image: {hero_filename}")
+    else:
+        print(f"   Image: None (notification sent for next week)")
     print("="*60)
     
     return True
