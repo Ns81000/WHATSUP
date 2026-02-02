@@ -1,5 +1,28 @@
 {
-  "posts": [],
+  "posts": [
+    {
+      "imdb_id": "tt3748528",
+      "title": "Rogue One: A Star Wars Story",
+      "moods": [
+        "Existential",
+        "Melancholy",
+        "Heroic"
+      ],
+      "url": "/posts/rogue-one-a-star-wars-story/",
+      "date": "2026-02-02T08:41:35.813787"
+    },
+    {
+      "imdb_id": "tt0944947",
+      "title": "Game of Thrones",
+      "moods": [
+        "Existential",
+        "Cerebral",
+        "Intense"
+      ],
+      "url": "/posts/game-of-thrones/",
+      "date": "2026-02-02T08:41:56.454349"
+    }
+  ],
   "last_updated": null,
   "version": "1.0.0"
 }
