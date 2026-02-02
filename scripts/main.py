@@ -128,6 +128,125 @@ def backup_csv_files():
             print(f"📦 Backup created: {backup.name}")
 
 
+# ==================== HISTORY & WEEKLY RECAP ====================
+
+def get_week_posts_from_history():
+    """Extract all posts from the current week from history.log."""
+    if not HISTORY_FILE.exists():
+        return []
+    
+    # Get current week's date range (Monday to Sunday)
+    today = datetime.now()
+    # Calculate Monday of current week
+    monday = today - timedelta(days=today.weekday())
+    monday = monday.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    week_posts = []
+    
+    with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            
+            # Parse: tt1234567  # Title - 2026-02-02 09:20
+            parts = line.split('#', 1)
+            if len(parts) < 2:
+                continue
+            
+            imdb_id = parts[0].strip()
+            rest = parts[1].strip()
+            
+            # Extract title and date
+            if ' - ' in rest:
+                title_part, date_part = rest.rsplit(' - ', 1)
+                title = title_part.strip()
+                
+                try:
+                    # Parse date: 2026-02-02 09:20
+                    post_date = datetime.strptime(date_part.strip(), '%Y-%m-%d %H:%M')
+                    
+                    # Check if this post is from current week
+                    if post_date >= monday:
+                        week_posts.append({
+                            'imdb_id': imdb_id,
+                            'title': title,
+                            'date': post_date
+                        })
+                except:
+                    continue
+    
+    return week_posts
+
+
+def send_weekly_email_summary(week_posts):
+    """Send email with this week's posts summary."""
+    if not SMTP_EMAIL or not SMTP_PASSWORD or not NOTIFICATION_EMAIL:
+        print("⚠️ Email not configured")
+        return False
+    
+    if not week_posts:
+        print("⚠️ No posts this week to summarize")
+        return False
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"📊 What's Up? Weekly Summary - {len(week_posts)} Posts"
+        msg['From'] = SMTP_EMAIL
+        msg['To'] = NOTIFICATION_EMAIL
+        
+        # Build post list
+        posts_html = ""
+        for idx, post in enumerate(week_posts, 1):
+            date_str = post['date'].strftime('%A, %b %d at %I:%M %p')
+            posts_html += f"""
+            <li>
+                <strong>{post['title']}</strong><br>
+                <small>{date_str} • IMDb: {post['imdb_id']}</small>
+            </li>
+            """
+        
+        html = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                h2 {{ color: #6366f1; }}
+                ul {{ list-style-type: none; padding: 0; }}
+                li {{ margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 3px solid #6366f1; }}
+                .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }}
+            </style>
+        </head>
+        <body>
+            <h2>🎬 What's Up? Weekly Summary</h2>
+            <p>This week, we published <strong>{len(week_posts)} philosophical analyses</strong>:</p>
+            <ul>
+                {posts_html}
+            </ul>
+            <div class="footer">
+                <p><strong>🌟 Sunday Special is coming!</strong></p>
+                <p>Please upload a hero image for this week's recap post via Telegram.</p>
+                <p>The weekly journey post will weave together all these films into one philosophical narrative.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        msg.attach(MIMEText(html, 'html'))
+        
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, NOTIFICATION_EMAIL, msg.as_string())
+        
+        print(f"✉️ Weekly summary email sent ({len(week_posts)} posts)")
+        return True
+    
+    except Exception as e:
+        print(f"❌ Email error: {e}")
+        return False
+
+
 def load_history():
     """Load processed IMDb IDs from history file."""
     if not HISTORY_FILE.exists():
@@ -435,6 +554,113 @@ def download_and_process_images(tmdb_data, imdb_id):
 
 # ==================== TELEGRAM INTEGRATION ====================
 
+def send_telegram_photo_request(message):
+    """Send a Telegram message requesting photo upload and wait for response."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("⚠️ Telegram not configured")
+        return False
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message,
+        'parse_mode': 'Markdown'
+    }
+    
+    try:
+        response = requests.post(url, json=payload, timeout=30)
+        response.raise_for_status()
+        print("📱 Telegram photo request sent")
+        return True
+    except requests.RequestException as e:
+        print(f"❌ Telegram error: {e}")
+        return False
+
+
+def wait_for_telegram_photo(timeout_minutes=30):
+    """Wait for user to upload a photo via Telegram. Poll for updates."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("⚠️ Telegram not configured")
+        return None, None
+    
+    print(f"⏳ Waiting up to {timeout_minutes} minutes for photo upload...")
+    
+    # Get current update ID to only check new messages
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+    try:
+        response = requests.get(url, timeout=10)
+        updates = response.json().get('result', [])
+        offset = updates[-1]['update_id'] + 1 if updates else 0
+    except:
+        offset = 0
+    
+    start_time = time.time()
+    timeout_seconds = timeout_minutes * 60
+    
+    while (time.time() - start_time) < timeout_seconds:
+        try:
+            # Poll for new updates
+            response = requests.get(url, params={'offset': offset, 'timeout': 30}, timeout=35)
+            data = response.json()
+            
+            if not data.get('ok'):
+                continue
+            
+            updates = data.get('result', [])
+            
+            for update in updates:
+                offset = update['update_id'] + 1
+                message = update.get('message', {})
+                photos = message.get('photo', [])
+                
+                if photos:
+                    # Found a photo!
+                    file_id = photos[-1]['file_id']  # Highest resolution
+                    message_id = message['message_id']
+                    
+                    print(f"✅ Photo received! Downloading...")
+                    
+                    # Get file path
+                    file_info_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile"
+                    file_info = requests.get(file_info_url, params={'file_id': file_id}, timeout=10).json()
+                    
+                    file_path = file_info.get('result', {}).get('file_path')
+                    if file_path:
+                        file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
+                        image_data = download_image(file_url)
+                        
+                        if image_data:
+                            return image_data, message_id
+            
+            time.sleep(2)  # Poll every 2 seconds
+        
+        except Exception as e:
+            print(f"⚠️ Polling error: {e}")
+            time.sleep(5)
+    
+    print(f"⏱️ Timeout reached after {timeout_minutes} minutes")
+    return None, None
+
+
+def delete_telegram_message(message_id):
+    """Delete a message from Telegram."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return False
+    
+    delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage"
+    try:
+        response = requests.post(delete_url, json={
+            'chat_id': TELEGRAM_CHAT_ID,
+            'message_id': message_id
+        }, timeout=10)
+        response.raise_for_status()
+        print("🗑️ Telegram message deleted")
+        return True
+    except Exception as e:
+        print(f"⚠️ Failed to delete message: {e}")
+        return False
+
+
 def send_telegram_message(message):
     """Send a message via Telegram bot."""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
@@ -579,6 +805,180 @@ _Reply with your photos. They will be processed automatically._
 
 
 # ==================== GEMINI CONTENT GENERATION ====================
+
+def generate_weekly_recap_post(week_posts, hero_image_path):
+    """Generate a beautiful weekly journey recap post with Gemini AI."""
+    
+    if not GENAI_AVAILABLE or not GEMINI_API_KEY:
+        print("❌ Gemini AI not available")
+        return None
+    
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    
+    # Build posts summary for prompt
+    posts_summary = ""
+    for idx, post in enumerate(week_posts, 1):
+        date_str = post['date'].strftime('%A, %B %d')
+        posts_summary += f"{idx}. **{post['title']}** ({date_str})\n"
+    
+    prompt = f"""
+You are a masterful film philosopher crafting the ultimate weekly synthesis for "What's Up?" - 
+a sophisticated platform exploring cinema's deeper meanings.
+
+This week, we published {len(week_posts)} philosophical analyses:
+
+{posts_summary}
+
+Your task: Create a **stunning weekly journey post** that weaves these films/series into ONE cohesive philosophical narrative.
+
+CRITICAL REQUIREMENTS:
+
+1. **Title**: Create a poetic, evocative title that captures the week's theme
+   Example: "The Week of Wandering Souls: A Journey Through Loss and Redemption"
+
+2. **Find the Thread**: Identify the common philosophical themes across all {len(week_posts)} works
+   - What existential questions connect them?
+   - What human truths do they all explore?
+   - How do they dialogue with each other?
+
+3. **Structure** (1200-1500 words):
+   
+   **Opening**:
+   - Profound opening quote (with {{{{: .prompt-tip }}}})
+   - Introduce the week's thematic journey with ***powerful prose***
+   
+   **Section 1: The Philosophical Thread** (##)
+   - Reveal the connecting theme
+   - Use a {{{{: .prompt-info }}}} blockquote for a key insight
+   - Reference 2-3 films to establish the pattern
+   
+   **Section 2: The Journey Through Cinema** (##)
+   - Weave through ALL {len(week_posts)} works chronologically
+   - For each film: 1-2 sentences connecting to the theme
+   - Use bullet points for the journey:
+     - **Film 1**: How it explores the theme
+     - **Film 2**: Its unique perspective  
+     - **Film 3**: Its contribution to the narrative
+   - Use *italics* for film titles
+   
+   **Section 3: The Human Condition** (##)  
+   - Deeper philosophical analysis
+   - Connect to real human experiences
+   - Use a {{{{: .prompt-warning }}}} or {{{{: .prompt-danger }}}} blockquote
+   
+   **Closing**:
+   - Synthesize the week's wisdom
+   - End with a thought-provoking question or reflection
+   - Final blockquote (any prompt style)
+
+4. **Visual Structure**:
+   - Use **bold** for key concepts
+   - Use ***bold italics*** for powerful statements
+   - Use *italics* for all film titles
+   - Embed the hero image after Section 1 with:
+     ![This week's cinematic journey](/{hero_image_path}){{{{: .rounded-10 w-100 .shadow}}}}
+     _A visual reflection of the week's philosophical explorations_
+   - Use bullet lists for the journey through films
+   - Use --- horizontal rules between major sections
+
+5. **Mood Tags**: Select 3 that capture the week's overall emotional journey
+
+6. **Description**: Meta description (150-160 chars) about the week's philosophical journey
+
+OUTPUT FORMAT:
+
+---
+title: "Your Poetic Weekly Title Here"
+date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S +0530')}
+categories: [Weekly Recap, Philosophical]
+tags: [mood1, mood2, mood3]
+image:
+  path: /{hero_image_path}
+  alt: "A cinematic representation of this week's philosophical journey"
+description: "Compelling meta description about the week's thematic journey"
+---
+
+> "A profound quote that captures the essence of this week's journey" — Philosopher
+{{{{: .prompt-tip }}}}
+
+[Opening paragraph with ***magnificent prose*** that introduces the week's common thread and invites readers into the journey...]
+
+This week, we embarked on a cinematic odyssey through {len(week_posts)} remarkable works, each offering a unique lens through which to view [the connecting theme]. From [first film] to [last film], a pattern emerged—a **philosophical tapestry** woven with threads of [theme].
+
+## The Philosophical Thread
+
+[Reveal and explore the common theme that connects all works. Use rich, evocative language...]
+
+> This is where cinema reveals its deepest truth: that every story, regardless of setting or genre, speaks to [universal theme].
+{{{{: .prompt-info }}}}
+
+[Continue exploring with 2-3 film examples...]
+
+![This week's cinematic journey](/{hero_image_path}){{{{: .rounded-10 w-100 .shadow}}}}
+_A visual reflection of the week's philosophical explorations_
+
+## The Journey Through Cinema
+
+Our weekly odyssey unfolded thus:
+
+- **Film 1**: [Connection to theme in 1-2 compelling sentences]
+- **Film 2**: [How it deepens or challenges the theme]
+- **Film 3**: [Its unique perspective]
+- **Film 4**: [How it synthesizes previous works]
+[Continue for all {len(week_posts)} works...]
+
+Each work added its voice to a growing chorus, building toward a profound realization about [theme].
+
+---
+
+## The Human Condition
+
+[Deep philosophical analysis connecting to real human experiences...]
+
+> "Quote or insight that captures the existential weight of the week's theme"
+{{{{: .prompt-warning }}}}
+
+[Continue with rich analysis...]
+
+---
+
+What patterns do you notice emerging in your own life's narrative? How do these {len(week_posts)} stories mirror your journey?
+
+> Final reflective thought
+{{{{: .prompt-tip }}}}
+
+"""
+    
+    print(f"🤖 Generating weekly recap with Gemini (retry with backoff)...")
+    
+    # Retry logic for API errors
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash-exp',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.8,
+                    top_p=0.95,
+                    max_output_tokens=8192,
+                )
+            )
+            
+            content = response.text
+            print(f"✅ Weekly recap content generated ({len(content)} chars)")
+            return content
+            
+        except Exception as e:
+            print(f"❌ Attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                wait_time = (attempt + 1) * 10
+                print(f"⏳ Waiting {wait_time} seconds before retry...")
+                time.sleep(wait_time)
+            else:
+                print(f"❌ All retries exhausted for weekly recap generation")
+                return None
+
 
 def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True, image_count=4):
     """Generate philosophical blog post using Gemini AI."""
@@ -858,6 +1258,123 @@ def extract_moods_from_content(content):
 
 # ==================== MAIN PROCESSING ====================
 
+def process_sunday_special():
+    """Process the Sunday special weekly recap post."""
+    
+    print(f"\n{'='*60}")
+    print(f"🌟 PROCESSING SUNDAY SPECIAL - WEEKLY RECAP")
+    print(f"{'='*60}")
+    
+    # Step 1: Get this week's posts from history
+    week_posts = get_week_posts_from_history()
+    
+    if not week_posts:
+        print("⚠️ No posts found for this week. Cannot create recap.")
+        return False
+    
+    print(f"📊 Found {len(week_posts)} posts from this week")
+    for post in week_posts:
+        print(f"   - {post['title']}")
+    
+    # Step 2: Send email summary to user
+    print("\n📧 Sending weekly summary email...")
+    send_weekly_email_summary(week_posts)
+    
+    # Step 3: Request hero image via Telegram
+    print("\n📱 Requesting hero image via Telegram...")
+    telegram_msg = f"""
+🌟 **SUNDAY SPECIAL - WEEKLY RECAP**
+
+This week, we published **{len(week_posts)} philosophical analyses**:
+
+{chr(10).join([f"{i+1}. {p['title']}" for i, p in enumerate(week_posts)])}
+
+📸 **Please upload a HERO image for the weekly recap post**
+
+Requirements:
+- Landscape/widescreen image
+- Should represent the week's thematic journey
+- High quality (1920px+ wide recommended)
+
+⏰ I'll wait 30 minutes for your upload.
+
+_Reply with your image. It will be processed automatically._
+"""
+    
+    if not send_telegram_photo_request(telegram_msg):
+        print("❌ Failed to send Telegram request")
+        return False
+    
+    # Step 4: Wait for user to upload photo
+    print("\n⏳ Waiting for hero image upload (timeout: 30 minutes)...")
+    image_data, message_id = wait_for_telegram_photo(timeout_minutes=30)
+    
+    if not image_data:
+        print("❌ No image received within timeout period")
+        # Send reminder
+        send_telegram_message("⚠️ Timeout: No image received. Sunday special cancelled.")
+        return False
+    
+    print("✅ Hero image received!")
+    
+    # Step 5: Process and save the hero image
+    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename for weekly recap
+    week_num = datetime.now().isocalendar()[1]
+    year = datetime.now().year
+    hero_filename = f"week{week_num}_{year}_recap_hero.webp"
+    hero_path = IMAGES_DIR / hero_filename
+    
+    print(f"📸 Processing hero image...")
+    if not process_and_save_image(image_data, hero_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
+        print("❌ Failed to process hero image")
+        return False
+    
+    # Step 6: Delete the Telegram message
+    if message_id:
+        delete_telegram_message(message_id)
+    
+    # Step 7: Generate the weekly recap content with Gemini
+    print("\n🤖 Generating weekly recap content with Gemini AI...")
+    hero_image_relative = str(hero_path.relative_to(ROOT_DIR))
+    
+    content = generate_weekly_recap_post(week_posts, hero_image_relative)
+    
+    if not content:
+        print("❌ Failed to generate weekly recap content")
+        return False
+    
+    # Step 8: Save the blog post
+    print("\n💾 Saving weekly recap post...")
+    
+    # Generate filename
+    week_start = datetime.now() - timedelta(days=datetime.now().weekday())
+    date_str = week_start.strftime('%Y-%m-%d')
+    clean_title = re.sub(r'[^\w\s-]', '', f"weekly-recap-week-{week_num}")
+    clean_title = re.sub(r'[-\s]+', '-', clean_title).lower()
+    
+    post_filename = f"{date_str}-{clean_title}.md"
+    post_path = POSTS_DIR / post_filename
+    
+    with open(post_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    
+    print(f"✅ Weekly recap post saved: {post_filename}")
+    
+    # Step 9: Add to history
+    recap_title = f"Weekly Recap - Week {week_num}"
+    save_to_history(f"recap_w{week_num}_{year}", recap_title)
+    
+    print("\n" + "="*60)
+    print(f"🎉 Sunday special completed successfully!")
+    print(f"   Post: {post_filename}")
+    print(f"   Image: {hero_filename}")
+    print("="*60)
+    
+    return True
+
+
 def process_item(item_data, media_type_label):
     """Process a single movie or series."""
     
@@ -1006,6 +1523,19 @@ def main():
     print("\n📦 Creating CSV backups...")
     backup_csv_files()
     
+    # Check if this is Sunday special run
+    fifth_run = is_sunday_fifth_run()
+    
+    if fifth_run:
+        # Process Sunday special weekly recap
+        print("\n🌟 This is the Sunday Special run - creating weekly recap!")
+        if process_sunday_special():
+            print("\n✅ Sunday special completed successfully!")
+        else:
+            print("\n⚠️ Sunday special failed or timed out")
+        return
+    
+    # Normal processing for regular runs
     # Select items to process
     print("\n📋 Selecting items to process...")
     movie, series, next_movie, next_series = select_items()
