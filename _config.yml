@@ -19,8 +19,10 @@ title: "What's Up?" # the main title
 tagline: Exploring the Philosophical Depths of Cinema # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
-  AI-powered philosophical analysis of movies and TV series. 
-  Exploring existential themes, metaphysical depths, and the human condition through cinema.
+  AI-powered philosophical film analysis exploring existential themes, metaphysical depths, 
+  and the human condition through cinema. Deep dives into movie philosophy, TV series analysis, 
+  existentialism, film criticism, and cinematic meaning. Discover hidden philosophical depths in 
+  your favorite films and shows.
 
 # Fill in the protocol & hostname for your site.
 # E.g. 'https://username.github.io', note that it does not end with a '/'.
@@ -35,16 +37,17 @@ twitter:
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: "What's Up?"
-  email: # change to your email address
+  name: "What's Up? - Cinema Philosophy"
+  email: whatsup.cinema@gmail.com # Contact email for better SEO
   fediverse_handle: # fill in your fediverse handle. E.g. "@username@domain.com"
   links:
     # The first element serves as the copyright owner's link
-    - https://github.com/Ns81000/WHATSUP # change to your GitHub homepage
-    # Uncomment below to add more social links
-    # - https://twitter.com/username
-    # - https://www.facebook.com/username
-    # - https://www.linkedin.com/in/username
+    - https://github.com/Ns81000/WHATSUP
+    - https://ns81000.github.io/WHATSUP
+    # Add more social links as you create profiles
+    # - https://twitter.com/whatsupcinema
+    # - https://www.reddit.com/r/whatsupcinema
+    # - https://medium.com/@whatsupcinema
 
 # Site Verification Settings
 webmaster_verifications:
@@ -104,7 +107,7 @@ avatar: "/assets/img/avatar.png"
 
 # The URL of the site-wide social preview image used in SEO `og:image` meta tag.
 # It can be overridden by a customized `page.image` in front matter.
-social_preview_image: # string, local or CORS resources
+social_preview_image: /assets/img/avatar.png # Default social share image
 
 # boolean type, the global switch for TOC in posts.
 toc: true

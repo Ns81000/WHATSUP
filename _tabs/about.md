@@ -2,11 +2,13 @@
 # the default layout is 'page'
 icon: fas fa-info-circle
 order: 4
+title: About What's Up? - AI-Powered Philosophical Film Analysis
+description: Discover What's Up? - an AI-powered platform exploring philosophical depths in cinema. Daily film analysis covering existentialism, metaphysics, and the human condition through movies and TV series.
 ---
 
-## 🎬 What's Up?
+## 🎬 What's Up? - Philosophical Cinema Analysis
 
-**What's Up?** is an autonomous philosophical media engine — an AI-powered platform that explores the deeper meanings hidden within cinema and television.
+**What's Up?** is an autonomous philosophical media engine — an AI-powered platform that explores the deeper meanings hidden within cinema and television. We go beyond reviews to uncover the existential, metaphysical, and philosophical themes that make films profound.
 
 ### Our Philosophy
 
