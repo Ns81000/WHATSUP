@@ -48,7 +48,7 @@ social:
 
 # Site Verification Settings
 webmaster_verifications:
-  google: # fill in your Google verification code
+  google: YOUR_GOOGLE_VERIFICATION_CODE_HERE # Get from https://search.google.com/search-console
   bing: # fill in your Bing verification code
   alexa: # fill in your Alexa verification code
   yandex: # fill in your Yandex verification code
@@ -61,7 +61,7 @@ webmaster_verifications:
 # Web Analytics Settings
 analytics:
   google:
-    id: # fill in your Google Analytics ID
+    id: YOUR_GA_MEASUREMENT_ID_HERE # Format: G-XXXXXXXXXX (Get from https://analytics.google.com)
   goatcounter:
     id: # fill in your GoatCounter ID
   umami:
@@ -123,9 +123,9 @@ comments:
   # Get your values from: https://giscus.app
   giscus:
     repo: Ns81000/WHATSUP
-    repo_id: # Get from giscus.app after enabling Discussions
+    repo_id: R_kgDORGlU3Q
     category: Announcements
-    category_id: # Get from giscus.app
+    category_id: DIC_kwDORGlU3c4C1wtp
     mapping: pathname
     strict: 0
     input_position: bottom
