@@ -130,6 +130,24 @@ def backup_csv_files():
             print(f"📦 Backup created: {backup.name}")
 
 
+def remove_from_csv(imdb_id, media_type):
+    """Remove processed item from CSV file to prevent re-selection."""
+    csv_file = MOVIES_CSV if media_type == 'movie' else SERIES_CSV
+    
+    try:
+        df = pd.read_csv(csv_file)
+        initial_count = len(df)
+        df = df[df['Const'] != imdb_id]
+        df.to_csv(csv_file, index=False)
+        
+        if len(df) < initial_count:
+            print(f"📝 Removed {imdb_id} from {csv_file.name}")
+        return True
+    except Exception as e:
+        print(f"⚠️ Failed to remove from CSV: {e}")
+        return False
+
+
 # ==================== HISTORY & WEEKLY RECAP ====================
 
 def get_week_posts_from_history():
@@ -768,7 +786,10 @@ def check_telegram_for_uploads(imdb_id):
     # Delete processed messages
     for msg_id in message_ids_to_delete:
         delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage"
-        requests.get(delete_url, params={'chat_id': TELEGRAM_CHAT_ID, 'message_id': msg_id})
+        try:
+            requests.post(delete_url, json={'chat_id': TELEGRAM_CHAT_ID, 'message_id': msg_id}, timeout=10)
+        except Exception as e:
+            print(f"⚠️ Failed to delete message {msg_id}: {e}")
     
     if downloaded_images:
         print(f"📥 Downloaded {len(downloaded_images)} images from Telegram")
@@ -1363,6 +1384,11 @@ def process_sunday_special():
         print("⚠️ No posts found for this week. Cannot create recap.")
         return False
     
+    if len(week_posts) < 3:
+        print(f"⚠️ Only {len(week_posts)} posts this week (need 3+ for meaningful recap)")
+        print("   Skipping recap generation this week.")
+        return False
+    
     print(f"📊 Found {len(week_posts)} posts from this week")
     for post in week_posts:
         print(f"   - {post['title']}")
@@ -1590,6 +1616,9 @@ def process_item(item_data, media_type_label):
     post_url = f"/posts/{clean_title}/"
     update_metadata(imdb_id, title, moods, post_url)
     
+    # Step 7: Remove from CSV to prevent re-selection
+    remove_from_csv(imdb_id, media_type)
+    
     return True
 
 
@@ -1640,6 +1669,10 @@ def send_sunday_morning_notification():
     
     if not week_posts:
         print("⚠️ No posts found for this week. Skipping notification.")
+        return False
+    
+    if len(week_posts) < 3:
+        print(f"⚠️ Only {len(week_posts)} posts this week - notification skipped")
         return False
     
     print(f"📊 Found {len(week_posts)} posts from this week")
@@ -1809,7 +1842,13 @@ def main():
     # Normal processing for regular runs
     # Select items to process
     print("\n📋 Selecting items to process...")
-    movie, series, next_movie, next_series = select_items()
+    
+    try:
+        movie, series, next_movie, next_series = select_items()
+    except Exception as e:
+        print(f"\n❌ Error selecting items: {e}")
+        print("   Check your CSV files for corruption or formatting issues.")
+        return
     
     if not movie and not series:
         print("\n❌ No items available to process!")

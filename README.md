@@ -20,7 +20,7 @@
     <img src="https://img.shields.io/badge/Live%20Site-GitHub%20Pages-2ea44f?style=flat-square&logo=github" alt="Live Site"/>
   </a>
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>
-  <img src="https://img.shields.io/badge/Posts%2FWeek-29-success?style=flat-square&logo=calendar" alt="Posts per week"/>
+  <img src="https://img.shields.io/badge/Posts%2FWeek-25-success?style=flat-square&logo=calendar" alt="Posts per week"/>
   <img src="https://img.shields.io/badge/Powered%20By-Gemini%202.5%20Flash-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini AI"/>
   <img src="https://img.shields.io/badge/TMDB-API-01D277?style=flat-square&logo=themoviedatabase&logoColor=white" alt="TMDB"/>
   <img src="https://img.shields.io/badge/Jekyll-4.3-CC0000?style=flat-square&logo=jekyll&logoColor=white" alt="Jekyll"/>
@@ -54,7 +54,7 @@
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| 📝 **Weekly Posts** | 29 | 24 (Mon-Sat) + 5 (Sunday) |
+| 📝 **Weekly Posts** | 25 | 24 (Mon-Sat) + 1 (Sunday Recap) |
 | 🎬 **Movie Library** | 572 films | Curated IMDb watchlist |
 | 📺 **Series Library** | 105 shows | Carefully selected |
 | 🖼️ **Image Format** | WebP | Compressed to <500KB |
@@ -69,10 +69,10 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           🕐 GITHUB ACTIONS                                 │
-│                    Triggers automatically 2-3 times daily                   │
+│                    Triggers automatically 1-2 times daily                   │
 │                                                                             │
-│     Mon-Sat: 08:30 AM + 05:30 PM IST (4 posts)                            │
-│     Sunday:  08:30 AM + 02:30 PM + 07:30 PM IST (5 posts)                 │
+│     Mon-Sat: 08:30 AM + 05:30 PM IST (4 posts/day = 24/week)             │
+│     Sunday:  08:30 AM (notification) + 07:30 PM (1 recap post)            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
@@ -127,9 +127,9 @@ Zero human intervention required. The system runs 24/7, generating fresh content
 | Day | Runs | Posts | Timing (IST) |
 |-----|------|-------|--------------|
 | Monday - Saturday | 2 | 4 posts | 08:30 AM, 05:30 PM |
-| Sunday | 3 | 5 posts | 08:30 AM, 02:30 PM, 07:30 PM |
+| Sunday | 2 | 1 recap | 08:30 AM (notification), 07:30 PM (recap) |
 
-**Weekly output:** 29 posts (24 Mon-Sat + 5 Sunday)
+**Weekly output:** 25 posts (24 regular + 1 Sunday recap)
 
 ### 🖼️ Intelligent Image Handling
 
@@ -193,37 +193,84 @@ This gives you **6+ hours** to manually upload images before they're needed.
 
 ## 🌟 Sunday Special - Weekly Recap
 
-Every Sunday at 14:00 UTC (07:30 PM IST), the system generates a **special weekly synthesis post** that weaves together all the week's analyses into one philosophical narrative.
+Every Sunday has **two runs** with different purposes:
+
+### 🌅 Sunday Morning (08:30 AM IST / 03:00 UTC) - Notification Only
+
+**Purpose:** Give you the full day to upload a custom hero image!
+
+**What Happens:**
+1. ✉️ **Email sent** with week's summary (all 24 posts from Mon-Sat)
+2. 📱 **Telegram notification** with upload token
+3. ⏸️ **Script exits** - no post generation yet
+4. ⏰ **Deadline reminder:** Upload before 7:30 PM IST
+
+**Sample Email:**
+```
+🌟 Sunday Special - Weekly Recap Coming Tonight!
+
+This week's posts:
+1. Film A (Monday)
+2. Film B (Monday)
+...
+24. Film X (Saturday)
+
+📸 Upload Hero Image - Deadline: 7:30 PM IST
+Token: RECAP_W5_2026
+
+Tonight at 7:30 PM: Script will check Telegram + generate recap
+```
+
+### 🌙 Sunday Evening (07:30 PM IST / 14:00 UTC) - Recap Generation
+
+**Purpose:** Generate and publish the weekly synthesis!
+
+**What Happens:**
+1. 🔍 **Check Telegram** for uploaded image (token: `RECAP_W5_2026`)
+2. 🖼️ **Process image** if found (or continue without)
+3. 🤖 **Generate recap** weaving all 24 posts into one narrative
+4. 📝 **Publish post** with or without hero image
+5. ✅ **Complete** - week's journey documented
 
 ### What Makes It Special?
 
 | Feature | Description |
 |---------|-------------|
-| 📊 **Weekly Summary Email** | Sent at the start, listing all 29 posts from the week |
+| ⏰ **Split Workflow** | Morning notification + Evening generation (19.5 hour gap) |
+| 📊 **Weekly Summary** | Lists all 24 posts from Monday-Saturday |
 | 🧵 **Thematic Synthesis** | AI finds common philosophical threads across all films |
 | 📖 **1500-2000 Words** | Longer, more comprehensive than regular posts |
 | 💭 **6-8 Philosopher Quotes** | Nietzsche, Camus, Sartre, Heidegger, etc. |
-| 🎨 **Optional Hero Image** | Upload custom image via Telegram (or continue without) |
+| 🎨 **Optional Hero Image** | Upload anytime before 7:30 PM (or skip it) |
 | ✨ **Beautiful Formatting** | Multiple blockquotes, horizontal rules, rich markdown |
 
 ### How It Works
 
 ```mermaid
 graph TD
-    A[Sunday 14:00 UTC Run] --> B{Get Week's Posts}
-    B --> C[Parse history.log]
-    C --> D[Filter: Monday-Sunday]
-    D --> E[Send Email Summary]
-    E --> F{Check Telegram for<br/>RECAP_W5_2026}
-    F -->|Image Found| G[Download & Process]
-    F -->|No Image| H[Continue Anyway]
-    G --> I[Generate Weekly Recap<br/>with Gemini AI]
-    H --> I
-    I --> J[Publish Post]
-    J --> K{Image Status?}
-    K -->|Had Image| L[✅ Complete with Hero]
-    K -->|No Image| M[✅ Complete Text-Only]
-    M --> N[Send Notification<br/>for Next Week]
+    A[Sunday 03:00 UTC<br/>Morning Run] --> B[Get Week's 24 Posts]
+    B --> C[Send Email Summary]
+    C --> D[Send Telegram Notification]
+    D --> E[EXIT - Wait for Evening]
+    
+    F[User Has All Day] --> G{Upload Image?}
+    G -->|Yes| H[Upload with Token<br/>RECAP_W5_2026]
+    G -->|No| I[Skip - That's Fine!]
+    
+    H --> J[Sunday 14:00 UTC<br/>Evening Run]
+    I --> J
+    
+    J --> K{Check Telegram}
+    K -->|Image Found| L[Download & Process]
+    K -->|No Image| M[Continue Without]
+    
+    L --> N[Generate Weekly Recap<br/>with Gemini AI]
+    M --> N
+    
+    N --> O[Publish Post]
+    O --> P{Image Status?}
+    P -->|Had Image| Q[✅ Complete with Hero]
+    P -->|No Image| R[✅ Complete Text-Only]
 ```
 
 ### Week Calculation Logic
@@ -261,7 +308,7 @@ tags: [Cerebral, Existential, Profound]
 This week, cinema became our **philosophical laboratory**...
 
 ## The Philosophical Thread
-[Reveals common themes across all 29 films]
+[Reveals common themes across all 24 films]
 
 > "Memory is not what we remember..." — André Bazin
 {: .prompt-info }
@@ -270,7 +317,7 @@ This week, cinema became our **philosophical laboratory**...
 
 **Film 1**: How it explores mortality and choice...
 **Film 2**: Its meditation on identity and becoming...
-[Continues through all 29 posts]
+[Continues through all 24 posts]
 
 ---
 
