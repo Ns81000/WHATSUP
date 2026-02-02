@@ -708,20 +708,20 @@ description: "Compelling meta description exploring the film's themes (150-160 c
 
 [Opening paragraph with beautiful prose...]
 
-## 🎭 First Section Title
+## First Section Title
 
 [Content with **bold concepts** and *italicized terms*...]
 
 {"![A compelling scene from " + title + "](" + body_images[0] + "){: .rounded-10 w-75 .shadow}" if body_images else ""}
 _A caption describing the image's significance_
 
-## 🧠 Second Section Title
+## Second Section Title
 
 [More philosophical exploration...]
 
 {"![Another powerful moment](" + body_images[1] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 1 else ""}
 
-## 🌌 Third Section Title  
+## Third Section Title  
 
 [Deeper existential themes...]
 
@@ -731,12 +731,12 @@ _A caption describing the image's significance_
 
 > "A closing thought or question that lingers with the reader"
 
-{"## 📺 Where to Watch" if streaming_providers else ""}
+{"## Where to Watch" if streaming_providers else ""}
 {streaming_section if streaming_section else ""}
 
 ---
 
-*What's Up? explores the philosophical depths of cinema.* ✨
+*What's Up? explores the philosophical depths of cinema.*
 """
     
     try:
