@@ -1,0 +1,7 @@
+# What's Up? Processing History
+# Format: IMDB_ID  # Title - Date
+# ================================================
+# This file tracks which movies/series have been processed
+# to prevent duplicate posts. Do not edit manually unless
+# you want to re-process an item.
+# ================================================

@@ -1,0 +1,20 @@
+# What's Up? - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Google Gemini AI for content generation
+google-genai>=0.3.0
+
+# HTTP requests for API calls
+requests>=2.31.0
+
+# Data processing for CSV files
+pandas>=2.0.0
+
+# Image processing and WebP conversion
+Pillow>=10.0.0
+
+# YAML parsing for frontmatter validation
+PyYAML>=6.0
+
+# Environment variable management (optional, for local development)
+python-dotenv>=1.0.0
