@@ -580,7 +580,7 @@ _Reply with your photos. They will be processed automatically._
 
 # ==================== GEMINI CONTENT GENERATION ====================
 
-def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True):
+def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True, image_count=4):
     """Generate philosophical blog post using Gemini AI."""
     
     if not GENAI_AVAILABLE or not GEMINI_API_KEY:
@@ -596,8 +596,7 @@ def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True):
     
     streaming_section = ""
     if streaming_providers:
-        streaming_section = "## 📺 Where to Watch\n\n" + \
-                           "\n".join([f"- {p}" for p in streaming_providers])
+        streaming_section = "\n".join([f"- {p}" for p in streaming_providers])
     
     # Get cast
     cast = []
@@ -625,15 +624,31 @@ def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True):
     directors = imdb_data.get('Directors', 'Unknown')
     rating = imdb_data.get('IMDb Rating', 'N/A')
     
-    # Determine image path
-    image_path = f"/assets/img/posts/{imdb_id}_hero.webp" if has_images else ""
+    # Determine image paths
+    hero_image = f"/assets/img/posts/{imdb_id}_hero.webp" if has_images else ""
+    body_images = []
+    if has_images and image_count > 1:
+        for i in range(1, min(image_count, 4)):  # Max 3 body images
+            body_images.append(f"/assets/img/posts/{imdb_id}_{i}.webp")
+    
+    # Build image instructions
+    image_instructions = ""
+    if body_images:
+        image_instructions = f"""
+IMPORTANT - EMBED THESE IMAGES in your content:
+- Image 1: ![Scene from {title}]({body_images[0]}){{: .rounded-10 w-75 .shadow}}
+{"- Image 2: ![Scene from " + title + "](" + body_images[1] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 1 else ""}
+{"- Image 3: ![Scene from " + title + "](" + body_images[2] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 2 else ""}
+
+Place these images strategically between sections to break up text and enhance visual appeal.
+"""
     
     # Build prompt
     prompt = f"""
 You are a renowned film philosopher and cultural critic writing for "What's Up?" - 
 a sophisticated platform that explores the deeper meaning behind cinema.
 
-Write a philosophical blog post about:
+Write a beautifully formatted philosophical blog post about:
 
 TITLE: {title} ({year})
 TYPE: {'Movie' if media_type == 'movie' else 'TV Series'}
@@ -645,39 +660,83 @@ CAST: {', '.join(cast) if cast else 'Not available'}
 PLOT: {plot if plot else 'Not available - see instructions below'}
 {web_search_instruction}
 
-REQUIREMENTS:
-1. Write 800-1200 words of philosophical analysis
-2. Explore existential, metaphysical, or ethical themes - go beyond plot summaries
-3. Connect the work to broader human experiences and philosophical questions
-4. Use elegant prose with occasional poetic flourishes
-5. {"Include the streaming section below ONLY" if streaming_providers else "Do NOT include a streaming section"}
-6. Assign exactly 3 mood tags from: [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
-   Existential, Romantic, Heroic, Dystopian, Surreal]
+{image_instructions}
 
-{streaming_section if streaming_section else ""}
+FORMATTING REQUIREMENTS (VERY IMPORTANT):
+1. Write 800-1200 words of philosophical analysis
+2. Use RICH MARKDOWN formatting:
+   - Start with a powerful opening quote using > blockquote
+   - Use ## Section Headers to organize content (3-4 sections)
+   - Include > blockquotes for memorable quotes from the film or philosophers
+   - Use **bold** for emphasis on key philosophical concepts
+   - Use *italics* for film titles and foreign terms
+   - Add horizontal rules --- between major sections
+   - Embed the body images between sections (see image instructions above)
+   
+3. STRUCTURE your post like this:
+   - Opening: A philosophical hook or profound quote (blockquote)
+   - Section 1 (##): The core philosophical theme
+   - [IMAGE 1 here if available]
+   - Section 2 (##): Character study or ethical dilemmas  
+   - [IMAGE 2 here if available]
+   - Section 3 (##): Metaphysical/existential exploration
+   - [IMAGE 3 here if available]
+   - Closing: A thought-provoking conclusion or question
+   
+4. Explore existential, metaphysical, or ethical themes - go beyond plot summaries
+5. Connect the work to broader human experiences and philosophical questions
+6. Use elegant prose with occasional poetic flourishes
+7. {"Include the streaming section at the end" if streaming_providers else "Do NOT include a streaming section"}
+8. Assign exactly 3 mood tags from: [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
+   Existential, Romantic, Heroic, Dystopian, Surreal]
 
 OUTPUT FORMAT (Jekyll Frontmatter + Markdown):
 
 ---
-title: "Your Philosophical Title Here - Be Creative"
+title: "Your Philosophical Title Here - Be Creative and Evocative"
 date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S +0530')}
 categories: [Philosophical, {genres.split(',')[0].strip() if genres else 'Drama'}]
 tags: [mood1, mood2, mood3]
 {"image:" if has_images else "# No image available"}
-{f"  path: {image_path}" if has_images else ""}
+{f"  path: {hero_image}" if has_images else ""}
 {f'  alt: "Evocative description of the scene"' if has_images else ""}
 description: "Compelling meta description exploring the film's themes (150-160 chars)"
 ---
 
-[Your philosophical analysis here - remember to be insightful, not superficial]
+> "A profound opening quote that sets the philosophical tone" — Attribution
+{{: .prompt-tip }}
 
-{"## 📺 Where to Watch" if streaming_providers else ""}
+[Opening paragraph with beautiful prose...]
 
-{chr(10).join([f"- {p}" for p in streaming_providers]) if streaming_providers else ""}
+## 🎭 First Section Title
+
+[Content with **bold concepts** and *italicized terms*...]
+
+{"![A compelling scene from " + title + "](" + body_images[0] + "){: .rounded-10 w-75 .shadow}" if body_images else ""}
+_A caption describing the image's significance_
+
+## 🧠 Second Section Title
+
+[More philosophical exploration...]
+
+{"![Another powerful moment](" + body_images[1] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 1 else ""}
+
+## 🌌 Third Section Title  
+
+[Deeper existential themes...]
+
+{"![The visual metaphor](" + body_images[2] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 2 else ""}
 
 ---
 
-*What's Up? explores the philosophical depths of cinema.*
+> "A closing thought or question that lingers with the reader"
+
+{"## 📺 Where to Watch" if streaming_providers else ""}
+{streaming_section if streaming_section else ""}
+
+---
+
+*What's Up? explores the philosophical depths of cinema.* ✨
 """
     
     try:
@@ -802,14 +861,17 @@ def process_item(item_data, media_type_label):
         images = download_and_process_images(tmdb_data, imdb_id)
     
     has_images = bool(images)
+    image_count = len(images) if images else 0
     
     if not has_images:
         print("\n⚠️ No images available - post will be created without hero image")
         # We continue anyway - Gemini can still write the post
+    else:
+        print(f"   ✓ {image_count} image(s) ready for embedding")
     
     # Step 4: Generate content with Gemini
     print("\n✍️ Generating philosophical content with Gemini...")
-    content = generate_blog_post(item_data, tmdb_data, media_type, has_images)
+    content = generate_blog_post(item_data, tmdb_data, media_type, has_images, image_count)
     
     if not content:
         print("❌ Content generation failed!")
