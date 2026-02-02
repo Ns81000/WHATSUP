@@ -191,6 +191,8 @@ jobs:
       - name: 🚀 Push to repository
         run: |
           if git log origin/main..HEAD --oneline | grep -q .; then
+            # Pull any remote changes and rebase our commits on top
+            git pull --rebase origin main
             git push
             echo "✅ Changes pushed to repository"
           else
