@@ -21,6 +21,28 @@
       ],
       "url": "/posts/game-of-thrones/",
       "date": "2026-02-02T09:21:10.755992"
+    },
+    {
+      "imdb_id": "tt0076759",
+      "title": "Star Wars: Episode IV - A New Hope",
+      "moods": [
+        "Cerebral",
+        "Hopeful",
+        "Existential"
+      ],
+      "url": "/posts/star-wars-episode-iv-a-new-hope/",
+      "date": "2026-02-02T16:10:43.995669"
+    },
+    {
+      "imdb_id": "tt14417718",
+      "title": "The Crowded Room",
+      "moods": [
+        "Cerebral",
+        "Melancholy",
+        "Existential"
+      ],
+      "url": "/posts/the-crowded-room/",
+      "date": "2026-02-02T16:11:06.099931"
     }
   ]
 }
