@@ -103,11 +103,11 @@ theme_mode: # [light | dark]
 cdn: # Leave empty to use local assets
 
 # the avatar on sidebar, support local or CORS resources
-avatar: "/assets/img/avatar.png"
+avatar: "/assets/img/logo.jpg"
 
 # The URL of the site-wide social preview image used in SEO `og:image` meta tag.
 # It can be overridden by a customized `page.image` in front matter.
-social_preview_image: /assets/img/avatar.png # Default social share image
+social_preview_image: /assets/img/logo.jpg # Default social share image
 
 # boolean type, the global switch for TOC in posts.
 toc: true
