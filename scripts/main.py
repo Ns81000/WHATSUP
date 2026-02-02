@@ -676,12 +676,13 @@ FORMATTING REQUIREMENTS (VERY IMPORTANT):
 3. STRUCTURE your post like this:
    - Opening: A philosophical hook or profound quote (blockquote)
    - Section 1 (##): The core philosophical theme
-   - [IMAGE 1 here if available]
+   {"- [IMAGE 1 here]" if body_images else ""}
    - Section 2 (##): Character study or ethical dilemmas  
-   - [IMAGE 2 here if available]
+   {"- [IMAGE 2 here]" if len(body_images) > 1 else ""}
    - Section 3 (##): Metaphysical/existential exploration
-   - [IMAGE 3 here if available]
+   {"- [IMAGE 3 here]" if len(body_images) > 2 else ""}
    - Closing: A thought-provoking conclusion or question
+   {"" if body_images else "- NOTE: No body images available for this post. Do NOT include any image markdown."}
    
 4. Explore existential, metaphysical, or ethical themes - go beyond plot summaries
 5. Connect the work to broader human experiences and philosophical questions
