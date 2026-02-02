@@ -11,6 +11,7 @@ Features:
 - Telegram/SMTP alerts for missing images
 - WebP image optimization (<500KB)
 - Pre-check system for next item's images
+- Sunday morning notification-only mode
 """
 
 import os
@@ -18,6 +19,7 @@ import sys
 import json
 import random
 import time
+import argparse
 import re
 import shutil
 import smtplib
@@ -309,14 +311,14 @@ def save_to_history(imdb_id, title):
 
 def is_sunday_fifth_run():
     """
-    Check if this is Sunday's 3rd run (the 5th post of the day).
-    Sunday runs at 03:00, 09:00, and 14:00 UTC.
-    The 14:00 UTC run is the 5th post (only 1 item instead of 2).
+    Check if this is Sunday evening recap run.
+    Sunday runs at 03:00 (notification only) and 14:00 UTC (recap generation).
+    The 14:00 UTC run generates the weekly recap post.
     """
     now = datetime.utcnow()
     is_sunday = now.weekday() == 6  # 0=Monday, 6=Sunday
-    is_fifth_run_time = 13 <= now.hour <= 15  # 14:00 UTC window (with delay buffer)
-    return is_sunday and is_fifth_run_time
+    is_recap_run_time = 13 <= now.hour <= 15  # 14:00 UTC window (with delay buffer)
+    return is_sunday and is_recap_run_time
 
 
 def select_items():
@@ -1624,15 +1626,164 @@ def pre_check_next_items(next_movie, next_series):
     return len(items_to_alert) == 0  # Return True if all have images
 
 
+# ==================== SUNDAY NOTIFICATION ====================
+
+def send_sunday_morning_notification():
+    """Send Sunday morning notification for weekly recap - notification only, no post generation."""
+    
+    print(f"\n{'='*60}")
+    print(f"🌅 SUNDAY MORNING - WEEKLY RECAP NOTIFICATION")
+    print(f"{'='*60}")
+    
+    # Get this week's posts from history
+    week_posts = get_week_posts_from_history()
+    
+    if not week_posts:
+        print("⚠️ No posts found for this week. Skipping notification.")
+        return False
+    
+    print(f"📊 Found {len(week_posts)} posts from this week")
+    
+    week_num = datetime.now().isocalendar()[1]
+    year = datetime.now().year
+    recap_token = f"RECAP_W{week_num}_{year}"
+    
+    # Send email summary
+    print("\n📧 Sending weekly summary email...")
+    if SMTP_EMAIL and SMTP_PASSWORD and NOTIFICATION_EMAIL:
+        try:
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = f"🌟 What's Up? Weekly Recap - Upload Image for Tonight!"
+            msg['From'] = SMTP_EMAIL
+            msg['To'] = NOTIFICATION_EMAIL
+            
+            posts_html = ""
+            for idx, post in enumerate(week_posts, 1):
+                date_str = post['date'].strftime('%A, %b %d at %I:%M %p')
+                posts_html += f"""
+                <li>
+                    <strong>{post['title']}</strong><br>
+                    <small>{date_str} • IMDb: {post['imdb_id']}</small>
+                </li>
+                """
+            
+            html = f"""
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    h2 {{ color: #6366f1; }}
+                    ul {{ list-style-type: none; padding: 0; }}
+                    li {{ margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 3px solid #6366f1; }}
+                    .highlight {{ background: #fef3c7; padding: 20px; border-left: 4px solid #f59e0b; margin: 20px 0; }}
+                    .code {{ background: #1f2937; color: #10b981; padding: 5px 10px; border-radius: 4px; font-family: monospace; font-size: 16px; }}
+                    .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }}
+                    .deadline {{ color: #dc2626; font-weight: bold; font-size: 18px; }}
+                </style>
+            </head>
+            <body>
+                <h2>🌟 Sunday Special - Weekly Recap Coming Tonight!</h2>
+                <p>Good morning! Here's what we published this week:</p>
+                <ul>
+                    {posts_html}
+                </ul>
+                
+                <div class="highlight">
+                    <h3>📸 Upload Hero Image for Tonight's Recap!</h3>
+                    <p><strong>Deadline:</strong> <span class="deadline">Before 7:30 PM IST today</span></p>
+                    <p><strong>What to do:</strong></p>
+                    <ol>
+                        <li>Find a beautiful philosophical/cinematic image</li>
+                        <li>Upload to Telegram bot</li>
+                        <li>Caption: <span class="code">{recap_token}</span></li>
+                        <li>Requirements: Landscape (1920px+ wide)</li>
+                    </ol>
+                    <p><strong>Tonight at 7:30 PM IST:</strong></p>
+                    <ul>
+                        <li>✅ Script will check Telegram for your image</li>
+                        <li>✅ Generate beautiful weekly recap (synthesizing all {len(week_posts)} posts)</li>
+                        <li>✅ Publish with your hero image</li>
+                    </ul>
+                    <p><small>💡 If you don't upload, recap will publish text-only (still beautiful!)</small></p>
+                </div>
+                
+                <div class="footer">
+                    <p>This week's recap will weave together all {len(week_posts)} analyses into one philosophical narrative.</p>
+                    <p><em>Automation will resume at 7:30 PM IST for recap generation.</em></p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            msg.attach(MIMEText(html, 'html'))
+            
+            with smtplib.SMTP("smtp.gmail.com", 587) as server:
+                server.starttls()
+                server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                server.sendmail(SMTP_EMAIL, NOTIFICATION_EMAIL, msg.as_string())
+            
+            print(f"✅ Email sent successfully")
+        except Exception as e:
+            print(f"❌ Email error: {e}")
+    
+    # Send Telegram notification
+    print("\n📱 Sending Telegram notification...")
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
+        telegram_msg = f"""
+🌅 **GOOD MORNING! Sunday Special Today**
+
+This week, we published **{len(week_posts)} philosophical analyses**.
+
+🌟 **Tonight's Weekly Recap**
+At 7:30 PM IST, the automation will:
+✅ Check Telegram for your image
+✅ Generate beautiful weekly synthesis  
+✅ Publish the recap post
+
+📸 **Want to add a hero image?**
+
+Upload to Telegram **before 7:30 PM IST** with caption:
+`{recap_token}`
+
+Requirements:
+• Landscape/widescreen (1920px+ wide)
+• Represents the week's philosophical journey
+
+⏰ **Deadline: 7:30 PM IST today**
+
+_Skip it? No problem! Recap will publish text-only._
+"""
+        send_telegram_message(telegram_msg)
+    
+    print("\n" + "="*60)
+    print(f"✅ Sunday morning notification sent!")
+    print(f"   Recap will be generated tonight at 7:30 PM IST")
+    print(f"   Token: {recap_token}")
+    print("="*60)
+    
+    return True
+
+
 # ==================== MAIN ENTRY POINT ====================
 
 def main():
     """Main execution flow."""
     
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='What\'s Up? Blog Automation')
+    parser.add_argument('--sunday-notification', action='store_true',
+                       help='Send Sunday morning notification only (no post generation)')
+    args = parser.parse_args()
+    
     print("\n" + "="*60)
     print("🎬 What's Up? - Autonomous Philosophical Media Engine")
     print("="*60)
     print(f"⏰ Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Check if this is Sunday morning notification-only mode
+    if args.sunday_notification:
+        send_sunday_morning_notification()
+        return
     
     # Validate environment
     print("\n📋 Validating environment...")

@@ -1,7 +1,7 @@
 name: What's Up? Daily Post Automation
 
 # ============================================================
-# SCHEDULE: 4 posts/day (Mon-Sat), 5 posts on Sunday
+# SCHEDULE: 4 posts/day (Mon-Sat), 1 post on Sunday
 # ============================================================
 # GitHub Actions uses UTC. IST = UTC + 5:30
 # 
@@ -9,28 +9,30 @@ name: What's Up? Daily Post Automation
 #   Run 1: 03:00 UTC → ~08:30 AM IST (Morning)
 #   Run 2: 12:00 UTC → ~05:30 PM IST (Evening)
 #
-# SUNDAY ONLY: 3 runs × ~2 posts = 5 posts
-#   Run 1: 03:00 UTC → ~08:30 AM IST (Morning) - 2 posts
-#   Run 2: 09:00 UTC → ~02:30 PM IST (Afternoon) - 2 posts  
-#   Run 3: 14:00 UTC → ~07:30 PM IST (Evening) - 1 post (weekly special)
+# SUNDAY ONLY: 1 post (Weekly Recap)
+#   Morning: 03:00 UTC → ~08:30 AM IST - Send notification only
+#   Evening: 14:00 UTC → ~07:30 PM IST - Generate weekly recap (1 post)
 #
-# Each run processes 1 movie + 1 series = 2 posts
-# Sunday's 3rd run processes only 1 item (weekly roundup style)
+# Weekly output: 24 posts (Mon-Sat) + 1 recap (Sunday) = 25 posts
 # ============================================================
 
 on:
   schedule:
-    # Daily runs (Mon-Sat: 2 runs, Sunday: all 3 run)
+    # Daily runs (Mon-Sat: both run, Sunday: only morning notification)
     - cron: '0 3 * * *'   # ~08:30 AM IST - Daily
-    - cron: '0 12 * * *'  # ~05:30 PM IST - Daily
-    - cron: '0 9 * * 0'   # ~02:30 PM IST - Sunday only (extra afternoon run)
-    - cron: '0 14 * * 0'  # ~07:30 PM IST - Sunday only (5th post)
+    - cron: '0 12 * * *'  # ~05:30 PM IST - Mon-Sat only
+    - cron: '0 14 * * 0'  # ~07:30 PM IST - Sunday only (Weekly Recap)
   
   # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
     inputs:
       skip_delay:
         description: 'Skip random delay (for testing)'
+        required: false
+        default: 'false'
+        type: boolean
+      notification_only:
+        description: 'Send Sunday notification only (no post generation)'
         required: false
         default: 'false'
         type: boolean
@@ -144,9 +146,19 @@ jobs:
           SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+          
+          # Sunday notification flag
+          SUNDAY_NOTIFICATION_ONLY: ${{ github.event.inputs.notification_only || 'false' }}
         run: |
           cd scripts
-          python main.py
+          
+          # Check if this is Sunday morning (notification only)
+          if [ "$(date -u +%u)" = "7" ] && [ "$(date -u +%H)" = "03" ]; then
+            echo "🌟 Sunday morning - Sending weekly recap notification only"
+            python main.py --sunday-notification
+          else
+            python main.py
+          fi
       
       # ============================================================
       # STEP 7: Commit and Push Changes
