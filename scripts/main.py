@@ -1136,6 +1136,13 @@ def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True, image_
     directors = imdb_data.get('Directors', 'Unknown')
     rating = imdb_data.get('IMDb Rating', 'N/A')
     
+    # Additional CSV data for richer context
+    runtime = imdb_data.get('Runtime (mins)', 'N/A')
+    num_votes = imdb_data.get('Num Votes', 'N/A')
+    release_date = imdb_data.get('Release Date', 'N/A')
+    original_title = imdb_data.get('Original Title', title)
+    imdb_url = imdb_data.get('URL', f'https://www.imdb.com/title/{imdb_id}/')
+    
     # Determine image paths
     hero_image = f"/assets/img/posts/{imdb_id}_hero.webp" if has_images else ""
     body_images = []
@@ -1155,22 +1162,33 @@ IMPORTANT - EMBED THESE IMAGES in your content:
 Place these images strategically between sections to break up text and enhance visual appeal.
 """
     
-    # Build prompt
+    # Build prompt with enriched CSV data
     prompt = f"""
 You are a renowned film philosopher and cultural critic writing for "What's Up?" - 
 a sophisticated platform that explores the deeper meaning behind cinema.
 
 Write a beautifully formatted philosophical blog post about:
 
+=== CORE METADATA (FROM IMDb CSV EXPORT) ===
 TITLE: {title} ({year})
+ORIGINAL TITLE: {original_title}
 TYPE: {'Movie' if media_type == 'movie' else 'TV Series'}
 GENRES: {genres}
 DIRECTOR: {directors}
-IMDB RATING: {rating}
-CAST: {', '.join(cast) if cast else 'Not available'}
+RUNTIME: {runtime} minutes
+IMDB RATING: {rating}/10
+IMDB VOTES: {num_votes}
+RELEASE DATE: {release_date}
+IMDB URL: {imdb_url}
 
-PLOT: {plot if plot else 'Not available - see instructions below'}
+=== TMDB DATA (IF AVAILABLE) ===
+CAST: {', '.join(cast) if cast else 'Not available'}
+PLOT OVERVIEW: {plot if plot else 'Not available - see web search instructions below'}
 {web_search_instruction}
+
+NOTE: You have rich metadata above. If TMDB plot is missing, use the IMDb URL and title information 
+to perform accurate web searches. The runtime, rating, votes, and release date help verify you're 
+researching the correct film/series.
 
 {image_instructions}
 
@@ -1220,10 +1238,17 @@ FORMATTING REQUIREMENTS (VERY IMPORTANT):
 8. Assign exactly 3 mood tags from: [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
    Existential, Romantic, Heroic, Dystopian, Surreal]
 
+🚨 CRITICAL TITLE FORMATTING RULE 🚨
+The 'title' field in frontmatter MUST be plain text only - NO markdown formatting allowed!
+- ❌ NEVER use *italics*, **bold**, or ***bold italics*** in the title field
+- ❌ NO asterisks (*), underscores (_), or backticks (`) in the title
+- ✅ Use plain text only, with proper punctuation and capitalization
+- ✅ You can reference film titles without italics in the title field
+
 OUTPUT FORMAT (Jekyll Frontmatter + Markdown):
 
 ---
-title: "Your Philosophical Title Here - Be Creative and Evocative"
+title: "Your Philosophical Title Here - Be Creative and Evocative (Plain Text Only)"
 date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S +0530')}
 categories: [Philosophical, {genres.split(',')[0].strip() if genres else 'Drama'}]
 tags: [mood1, mood2, mood3]
@@ -1328,6 +1353,44 @@ Key themes to explore:
 
 
 # ==================== METADATA TRACKING ====================
+
+def sanitize_title_in_content(content):
+    """Remove markdown formatting from the title field in frontmatter.
+    
+    Strips *, **, ***, _, __, ___, ` from the title line to ensure
+    clean rendering in HTML <title> tags, social media, and navigation.
+    """
+    # Match the title line in YAML frontmatter
+    title_pattern = r'(title:\s*["\']?)([^"\'\n]+)(["\']?)'
+    
+    def clean_title(match):
+        prefix = match.group(1)  # 'title: "' or 'title: '
+        title_text = match.group(2)  # The actual title
+        suffix = match.group(3)  # '"' or ''
+        
+        # Remove markdown formatting characters
+        # Remove ***text*** (bold+italic)
+        cleaned = re.sub(r'\*\*\*([^*]+)\*\*\*', r'\1', title_text)
+        # Remove **text** (bold)
+        cleaned = re.sub(r'\*\*([^*]+)\*\*', r'\1', cleaned)
+        # Remove *text* (italic)
+        cleaned = re.sub(r'\*([^*]+)\*', r'\1', cleaned)
+        # Remove ___text___ (bold+italic underscore)
+        cleaned = re.sub(r'___([^_]+)___', r'\1', cleaned)
+        # Remove __text__ (bold underscore)
+        cleaned = re.sub(r'__([^_]+)__', r'\1', cleaned)
+        # Remove _text_ (italic underscore)
+        cleaned = re.sub(r'_([^_]+)_', r'\1', cleaned)
+        # Remove `code` backticks
+        cleaned = re.sub(r'`([^`]+)`', r'\1', cleaned)
+        
+        return f"{prefix}{cleaned}{suffix}"
+    
+    # Apply the cleaning function
+    sanitized = re.sub(title_pattern, clean_title, content)
+    
+    return sanitized
+
 
 def update_metadata(imdb_id, title, moods, url):
     """Update metadata database for weekly roundups."""
@@ -1595,6 +1658,10 @@ def process_item(item_data, media_type_label):
         return False
     
     print(f"   ✓ Generated {len(content)} characters")
+    
+    # Step 4.5: Sanitize title to remove any markdown formatting
+    print("   ✓ Sanitizing title field...")
+    content = sanitize_title_in_content(content)
     
     # Step 5: Save the post
     POSTS_DIR.mkdir(parents=True, exist_ok=True)
