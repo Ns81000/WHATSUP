@@ -43,6 +43,28 @@
       ],
       "url": "/posts/the-crowded-room/",
       "date": "2026-02-02T16:11:06.099931"
+    },
+    {
+      "imdb_id": "tt0080684",
+      "title": "Star Wars: Episode V - The Empire Strikes Back",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Intense"
+      ],
+      "url": "/posts/star-wars-episode-v-the-empire-strikes-back/",
+      "date": "2026-02-03T04:57:09.676029"
+    },
+    {
+      "imdb_id": "tt2934286",
+      "title": "Halo",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Intense"
+      ],
+      "url": "/posts/halo/",
+      "date": "2026-02-03T04:57:28.706359"
     }
   ]
 }
