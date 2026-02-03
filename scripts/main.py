@@ -46,6 +46,7 @@ except ImportError:
 # API Keys (from environment variables)
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 TMDB_API_KEY = os.getenv('TMDB_API_KEY')
+OMDB_API_KEY = os.getenv('OMDB_API_KEY')  # For IMDb ratings
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 SMTP_EMAIL = os.getenv('SMTP_EMAIL')
@@ -484,6 +485,45 @@ def get_streaming_providers(tmdb_data, country='US'):
         return None
     
     return [p['provider_name'] for p in flatrate[:5]]
+
+
+def fetch_omdb_rating(imdb_id):
+    """Fetch IMDb rating from OMDb API.
+    
+    Returns dict with rating and votes, or None if fetch fails.
+    This function fails gracefully - if OMDb is unavailable, posts still generate.
+    """
+    if not OMDB_API_KEY:
+        print("⚠️  OMDb API key not configured (ratings disabled)")
+        return None
+    
+    url = f"https://www.omdbapi.com/?i={imdb_id}&apikey={OMDB_API_KEY}"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data.get('Response') == 'True' and data.get('imdbRating') != 'N/A':
+            rating = data.get('imdbRating', 'N/A')
+            votes = data.get('imdbVotes', 'N/A')
+            
+            print(f"   ✓ IMDb Rating: {rating}/10 ({votes} votes)")
+            
+            return {
+                'rating': rating,
+                'votes': votes
+            }
+        else:
+            print(f"   ⚠️  No IMDb rating available")
+            return None
+            
+    except requests.RequestException as e:
+        print(f"   ⚠️  OMDb API error (skipping rating): {e}")
+        return None
+    except Exception as e:
+        print(f"   ⚠️  Rating fetch failed (skipping): {e}")
+        return None
 
 
 # ==================== IMAGE PROCESSING ====================
@@ -1628,6 +1668,10 @@ def process_item(item_data, media_type_label):
     if detected_type:
         media_type = detected_type
     
+    # Step 2.5: Fetch IMDb rating (non-blocking, graceful failure)
+    print("\n⭐ Fetching IMDb rating...")
+    imdb_rating_data = fetch_omdb_rating(imdb_id)
+    
     if tmdb_data:
         print(f"   ✓ Found: {tmdb_data.get('title', tmdb_data.get('name', 'Unknown'))}")
         print(f"   ✓ Overview: {len(tmdb_data.get('overview', ''))} chars")
@@ -1662,6 +1706,27 @@ def process_item(item_data, media_type_label):
     # Step 4.5: Sanitize title to remove any markdown formatting
     print("   ✓ Sanitizing title field...")
     content = sanitize_title_in_content(content)
+    
+    # Step 4.6: Add IMDb rating to frontmatter if available
+    if imdb_rating_data:
+        print("   ✓ Adding IMDb rating to frontmatter...")
+        # Find the end of frontmatter (second ---)
+        parts = content.split('---', 2)
+        if len(parts) >= 3:
+            frontmatter = parts[1]
+            rest = parts[2]
+            
+            # Add rating fields to frontmatter
+            rating_fields = f"\nimdb_rating: {imdb_rating_data['rating']}\nimdb_votes: \"{imdb_rating_data['votes']}\""
+            
+            # Insert before description field or at end of frontmatter
+            if 'description:' in frontmatter:
+                frontmatter = frontmatter.replace('description:', rating_fields + '\ndescription:')
+            else:
+                frontmatter += rating_fields + '\n'
+            
+            content = '---' + frontmatter + '---' + rest
+            print(f"   ✓ IMDb {imdb_rating_data['rating']}/10 added to post")
     
     # Step 5: Save the post
     POSTS_DIR.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,66 @@
+/*
+ * IMDb Rating Badge Styling
+ * Displays inline with post metadata
+ */
+
+.imdb-rating-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #f5c518 0%, #e8b708 100%);
+  color: #000;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-left: 12px;
+  box-shadow: 0 2px 8px rgba(245, 197, 24, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 197, 24, 0.4);
+  }
+  
+  i.fa-star {
+    font-size: 1rem;
+  }
+  
+  strong {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  
+  .imdb-votes {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin-left: 2px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .imdb-rating-inline {
+    display: flex;
+    margin-left: 0;
+    margin-top: 8px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    width: fit-content;
+    
+    .imdb-votes {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+/* Dark mode support */
+html[data-mode='dark'] {
+  .imdb-rating-inline {
+    color: #1a1a1a;
+    
+    .imdb-votes {
+      opacity: 0.75;
+    }
+  }
+}
