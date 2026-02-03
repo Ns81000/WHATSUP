@@ -1,5 +1,5 @@
 ---
-title: "The Abyss Glimpsed: *The Empire Strikes Back* and the Unbearable Weight of Self"
+title: "The Abyss Glimpsed: The Empire Strikes Back and the Unbearable Weight of Self"
 date: 2026-02-03 04:56:52 +0530
 categories: [Philosophical, Action]
 tags: [Cerebral, Existential, Intense]
