@@ -65,6 +65,28 @@
       ],
       "url": "/posts/halo/",
       "date": "2026-02-03T04:57:28.706359"
+    },
+    {
+      "imdb_id": "tt0086190",
+      "title": "Star Wars: Episode VI - Return of the Jedi",
+      "moods": [
+        "Existential",
+        "Hopeful",
+        "Heroic"
+      ],
+      "url": "/posts/star-wars-episode-vi-return-of-the-jedi/",
+      "date": "2026-02-03T12:34:42.587702"
+    },
+    {
+      "imdb_id": "tt10160804",
+      "title": "Hawkeye",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Hopeful"
+      ],
+      "url": "/posts/hawkeye/",
+      "date": "2026-02-03T12:35:02.980590"
     }
   ]
 }
