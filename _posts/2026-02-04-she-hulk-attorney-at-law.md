@@ -6,9 +6,6 @@ tags: [Existential, Cerebral, Hopeful]
 image:
   path: /assets/img/posts/tt10857160_hero.webp
   alt: "She-Hulk, green and formidable, yet with a hint of everyday exasperation, in a courtroom setting."
-
-imdb_rating: 5.2
-imdb_votes: "206,437"
 description: "Exploring She-Hulk's intricate dance between human identity and superhuman power, probing authenticity and the absurdities of modern existence."
 ---
 

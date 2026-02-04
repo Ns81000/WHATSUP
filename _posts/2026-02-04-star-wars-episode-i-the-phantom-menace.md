@@ -6,9 +6,6 @@ tags: [Existential, Cerebral, Intense]
 image:
   path: /assets/img/posts/tt0120915_hero.webp
   alt: "Anakin Skywalker gazes at the desert suns, a symbol of his fated journey."
-
-imdb_rating: 6.5
-imdb_votes: "917,424"
 description: "Unpacking the philosophical undercurrents of Star Wars: Episode I, from predestination to the nature of evil and the choices that forge destiny."
 ---
 
