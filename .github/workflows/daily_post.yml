@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     
     # Set timeout to prevent hanging jobs
-    timeout-minutes: 30
+    timeout-minutes: 60
     
     steps:
       # ============================================================
@@ -82,8 +82,8 @@ jobs:
       - name: ⏳ Add random delay for natural timing
         if: ${{ github.event.inputs.skip_delay != 'true' }}
         run: |
-          # Random delay between 0 and 45 minutes (2700 seconds)
-          DELAY=$((RANDOM % 2700))
+          # Random delay between 0 and 20 minutes (1200 seconds)
+          DELAY=$((RANDOM % 1200))
           echo "⏳ Sleeping for $((DELAY / 60)) minutes and $((DELAY % 60)) seconds..."
           sleep $DELAY
           echo "✅ Delay complete, starting automation"
