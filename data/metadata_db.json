@@ -87,6 +87,28 @@
       ],
       "url": "/posts/hawkeye/",
       "date": "2026-02-03T12:35:02.980590"
+    },
+    {
+      "imdb_id": "tt0120915",
+      "title": "Star Wars: Episode I - The Phantom Menace",
+      "moods": [
+        "Existential",
+        "Cerebral",
+        "Intense"
+      ],
+      "url": "/posts/star-wars-episode-i-the-phantom-menace/",
+      "date": "2026-02-04T12:51:00.273923"
+    },
+    {
+      "imdb_id": "tt10857160",
+      "title": "She-Hulk: Attorney at Law",
+      "moods": [
+        "Existential",
+        "Cerebral",
+        "Hopeful"
+      ],
+      "url": "/posts/she-hulk-attorney-at-law/",
+      "date": "2026-02-04T12:51:23.129329"
     }
   ]
 }
