@@ -109,6 +109,28 @@
       ],
       "url": "/posts/she-hulk-attorney-at-law/",
       "date": "2026-02-04T12:51:23.129329"
+    },
+    {
+      "imdb_id": "tt0121765",
+      "title": "Star Wars: Episode II - Attack of the Clones",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Melancholy"
+      ],
+      "url": "/posts/star-wars-episode-ii-attack-of-the-clones/",
+      "date": "2026-02-04T22:57:46.101818"
+    },
+    {
+      "imdb_id": "tt11198330",
+      "title": "House of the Dragon",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Melancholy"
+      ],
+      "url": "/posts/house-of-the-dragon/",
+      "date": "2026-02-04T22:58:06.759922"
     }
   ]
 }
