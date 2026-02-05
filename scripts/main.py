@@ -1500,15 +1500,15 @@ FORMATTING REQUIREMENTS (VERY IMPORTANT):
    - Opening: A philosophical quote with {{: .prompt-tip }}
    - First paragraph: Hook with honest assessment + elegant prose (mention reception if relevant)
    - Section 1 (##): The core philosophical theme (acknowledge any flaws/criticism first, then explore depth)
-   {"- [IMAGE 1 with caption]" if body_images else ""}
+   {f"- Place [IMAGE_1] here with caption" if has_images and image_count > 1 else ""}
    - Section 2 (##): What works vs. what doesn't - balanced analysis with specific examples from reviews
    - Use a {{: .prompt-info }} blockquote for a key insight
-   {"- [IMAGE 2 with caption]" if len(body_images) > 1 else ""}
+   {f"- Place [IMAGE_2] here with caption" if has_images and image_count > 2 else ""}
    - Section 3 (##): Despite flaws, the deeper questions it raises (metaphysical/existential exploration)
-   {"- [IMAGE 3 with caption]" if len(body_images) > 2 else ""}
+   {f"- Place [IMAGE_3] here with caption" if has_images and image_count > 3 else ""}
    - Closing section with {{: .prompt-warning }} - acknowledge mixed legacy but philosophical value
    - Final thought-provoking question or statement
-   {"" if body_images else "- NOTE: No body images available. Do NOT include any image markdown."}  
+   {"" if has_images and image_count > 1 else "- NOTE: No body images available. Do NOT include any image markdown."}  
    
    **CRITICAL**: Reference actual critical reception. If reviews were poor, SAY SO explicitly.
    Examples: "Despite its 32% Rotten Tomatoes score...", "Critics lambasted the pacing, and rightfully so...",
@@ -1570,8 +1570,8 @@ Key themes to explore:
 - **Theme two** — its implications  
 - **Theme three** — its resonance
 
-{"![A compelling scene from " + title + "](" + body_images[0] + "){: .rounded-10 w-75 .shadow}" if body_images else ""}
-{"_A thoughtful caption describing the scene's deeper meaning_" if body_images else ""}
+{f"[IMAGE_1]" if has_images and image_count > 1 else ""}
+{f"_A thoughtful caption describing the scene's deeper meaning_" if has_images and image_count > 1 else ""}
 
 ## The Human Condition
 
@@ -1582,15 +1582,15 @@ Key themes to explore:
 
 [Continue with analysis of how characters embody philosophical concepts...]
 
-{"![Another powerful moment](" + body_images[1] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 1 else ""}
-{"_Visual poetry captured in a single frame_" if len(body_images) > 1 else ""}
+{f"[IMAGE_2]" if has_images and image_count > 2 else ""}
+{f"_Visual poetry captured in a single frame_" if has_images and image_count > 2 else ""}
 
 ## Beyond the Surface
 
 [Deeper existential, metaphysical themes. What questions does this work dare to ask?]
 
-{"![The visual metaphor](" + body_images[2] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 2 else ""}
-{"_The imagery speaks what words cannot express_" if len(body_images) > 2 else ""}
+{f"[IMAGE_3]" if has_images and image_count > 3 else ""}
+{f"_The imagery speaks what words cannot express_" if has_images and image_count > 3 else ""}
 
 ---
 
@@ -1617,7 +1617,7 @@ Key themes to explore:
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.85,
-                    max_output_tokens=4096,
+                    max_output_tokens=8192,
                 )
             )
             
