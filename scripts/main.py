@@ -63,6 +63,7 @@ MOVIES_CSV = DATA_DIR / 'movies.csv'
 SERIES_CSV = DATA_DIR / 'series.csv'
 HISTORY_FILE = DATA_DIR / 'history.log'
 METADATA_FILE = DATA_DIR / 'metadata_db.json'
+IMAGE_USAGE_FILE = DATA_DIR / 'used_images.json'
 
 # TMDB Configuration
 TMDB_BASE_URL = 'https://api.themoviedb.org/3'
@@ -367,43 +368,57 @@ def select_items():
     next_movie = None
     next_series = None
     
-    # For Sunday's 5th run, only pick 1 item (alternate weekly)
+    # For Sunday's 5th run, only pick 1 item (alternate weekly) - RANDOMLY
     if fifth_run:
         week_number = datetime.utcnow().isocalendar()[1]
         pick_movie = (week_number % 2 == 0)  # Even weeks: movie, Odd weeks: series
         
         if pick_movie and not available_movies.empty:
-            movie = available_movies.iloc[0].to_dict()
-            if len(available_movies) > 1:
-                next_movie = available_movies.iloc[1].to_dict()
-            print(f"🎬 Sunday Special (Movie): {movie['Title']} ({movie['Year']})")
+            random_idx = random.randint(0, len(available_movies) - 1)
+            movie = available_movies.iloc[random_idx].to_dict()
+            remaining = available_movies.drop(available_movies.index[random_idx])
+            if not remaining.empty:
+                next_movie = remaining.iloc[random.randint(0, len(remaining) - 1)].to_dict()
+            print(f"🎬 Sunday Special (Movie - Random): {movie['Title']} ({movie['Year']})")
         elif not available_series.empty:
-            series = available_series.iloc[0].to_dict()
-            if len(available_series) > 1:
-                next_series = available_series.iloc[1].to_dict()
-            print(f"📺 Sunday Special (Series): {series['Title']} ({series['Year']})")
+            random_idx = random.randint(0, len(available_series) - 1)
+            series = available_series.iloc[random_idx].to_dict()
+            remaining = available_series.drop(available_series.index[random_idx])
+            if not remaining.empty:
+                next_series = remaining.iloc[random.randint(0, len(remaining) - 1)].to_dict()
+            print(f"📺 Sunday Special (Series - Random): {series['Title']} ({series['Year']})")
         elif not available_movies.empty:
-            movie = available_movies.iloc[0].to_dict()
-            if len(available_movies) > 1:
-                next_movie = available_movies.iloc[1].to_dict()
-            print(f"🎬 Sunday Special (Movie fallback): {movie['Title']} ({movie['Year']})")
+            random_idx = random.randint(0, len(available_movies) - 1)
+            movie = available_movies.iloc[random_idx].to_dict()
+            remaining = available_movies.drop(available_movies.index[random_idx])
+            if not remaining.empty:
+                next_movie = remaining.iloc[random.randint(0, len(remaining) - 1)].to_dict()
+            print(f"🎬 Sunday Special (Movie fallback - Random): {movie['Title']} ({movie['Year']})")
     else:
-        # Normal run: pick both movie and series
+        # Normal run: pick both movie and series RANDOMLY
         if available_movies.empty:
             print("⚠️ No more movies to process!")
         else:
-            movie = available_movies.iloc[0].to_dict()
-            if len(available_movies) > 1:
-                next_movie = available_movies.iloc[1].to_dict()
-            print(f"🎬 Selected movie: {movie['Title']} ({movie['Year']})")
+            # Random selection instead of sequential
+            random_idx = random.randint(0, len(available_movies) - 1)
+            movie = available_movies.iloc[random_idx].to_dict()
+            # Get next movie (different from selected one)
+            remaining_movies = available_movies.drop(available_movies.index[random_idx])
+            if not remaining_movies.empty:
+                next_movie = remaining_movies.iloc[random.randint(0, len(remaining_movies) - 1)].to_dict()
+            print(f"🎬 Selected movie (random): {movie['Title']} ({movie['Year']})")
         
         if available_series.empty:
             print("⚠️ No more series to process!")
         else:
-            series = available_series.iloc[0].to_dict()
-            if len(available_series) > 1:
-                next_series = available_series.iloc[1].to_dict()
-            print(f"📺 Selected series: {series['Title']} ({series['Year']})")
+            # Random selection instead of sequential
+            random_idx = random.randint(0, len(available_series) - 1)
+            series = available_series.iloc[random_idx].to_dict()
+            # Get next series (different from selected one)
+            remaining_series = available_series.drop(available_series.index[random_idx])
+            if not remaining_series.empty:
+                next_series = remaining_series.iloc[random.randint(0, len(remaining_series) - 1)].to_dict()
+            print(f"📺 Selected series (random): {series['Title']} ({series['Year']})")
     
     return movie, series, next_movie, next_series
 
@@ -559,8 +574,36 @@ def process_and_save_image(image_data, output_path, max_size_kb=500, target_widt
     return True
 
 
+def load_used_images():
+    """Load the list of already used TMDB image file paths."""
+    if not IMAGE_USAGE_FILE.exists():
+        return set()
+    
+    try:
+        with open(IMAGE_USAGE_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return set(data.get('used_paths', []))
+    except Exception as e:
+        print(f"⚠️ Error loading image usage file: {e}")
+        return set()
+
+
+def save_used_image(file_path):
+    """Mark a TMDB image file path as used."""
+    IMAGE_USAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    
+    used_images = load_used_images()
+    used_images.add(file_path)
+    
+    try:
+        with open(IMAGE_USAGE_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'used_paths': list(used_images)}, f, indent=2)
+    except Exception as e:
+        print(f"⚠️ Error saving image usage: {e}")
+
+
 def download_and_process_images(tmdb_data, imdb_id):
-    """Download hero image and optional body images."""
+    """Download hero image and optional body images, avoiding duplicates."""
     
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     
@@ -571,35 +614,54 @@ def download_and_process_images(tmdb_data, imdb_id):
         print(f"⚠️ No backdrop images found for {imdb_id}")
         return None
     
+    # Load previously used images to avoid duplicates
+    used_images = load_used_images()
+    print(f"   ℹ️ {len(used_images)} images already used in previous posts")
+    
+    # Filter out already used images
+    available_backdrops = [b for b in backdrops if b['file_path'] not in used_images]
+    
+    if not available_backdrops:
+        print(f"⚠️ All images for {imdb_id} have been used before! Using original list.")
+        available_backdrops = backdrops
+    else:
+        print(f"   ✓ {len(available_backdrops)} unused images available")
+    
     # Sort by quality (vote_average * width)
-    backdrops.sort(
+    available_backdrops.sort(
         key=lambda x: x.get('vote_average', 0) * x.get('width', 0), 
         reverse=True
     )
     
     # Download hero image (best quality)
-    hero = backdrops[0]
+    hero = available_backdrops[0]
     hero_url = f"{TMDB_IMAGE_BASE}original{hero['file_path']}"
     
-    print(f"📸 Downloading hero image...")
+    print(f"📸 Downloading hero image (NEW, not used before)...")
     hero_data = download_image(hero_url)
     
     if hero_data:
         hero_path = IMAGES_DIR / f"{imdb_id}_hero.webp"
         if process_and_save_image(hero_data, hero_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
             images.append(('hero', str(hero_path.relative_to(ROOT_DIR))))
+            # Mark this image as used
+            save_used_image(hero['file_path'])
+            print(f"   ✓ Marked hero image as used: {hero['file_path']}")
     
     # Download up to 3 additional body images
-    for i, backdrop in enumerate(backdrops[1:4], 1):
+    for i, backdrop in enumerate(available_backdrops[1:4], 1):
         img_url = f"{TMDB_IMAGE_BASE}w1280{backdrop['file_path']}"
         
-        print(f"📸 Downloading body image {i}...")
+        print(f"📸 Downloading body image {i} (NEW, not used before)...")
         img_data = download_image(img_url, timeout=30)
         
         if img_data:
             img_path = IMAGES_DIR / f"{imdb_id}_{i}.webp"
             if process_and_save_image(img_data, img_path, BODY_MAX_SIZE_KB, BODY_TARGET_WIDTH):
                 images.append((f'body_{i}', str(img_path.relative_to(ROOT_DIR))))
+                # Mark this image as used
+                save_used_image(backdrop['file_path'])
+                print(f"   ✓ Marked body image {i} as used: {backdrop['file_path']}")
     
     return images if images else None
 
@@ -1118,16 +1180,34 @@ def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True, image_
     
     # Handle missing TMDB data with web search instruction
     plot = tmdb_data.get('overview', '') if tmdb_data else ''
-    web_search_instruction = ""
-    if not plot:
-        web_search_instruction = """
-        
-        IMPORTANT: No plot information was found in our database.
-        Please use your web search capabilities to:
-        1. Research this movie/series thoroughly
-        2. Find plot details, themes, and critical reception
-        3. If web search fails, use your best knowledge to write about it
-        """
+    
+    # ALWAYS encourage web search for reviews and balanced perspective
+    web_search_instruction = f"""
+
+🌐 **CRITICAL: WEB SEARCH REQUIRED FOR AUTHENTIC REVIEWS**
+
+Before writing, you MUST search the web for:
+1. **Real critic reviews** from Rotten Tomatoes, Metacritic, IMDb user reviews
+2. **Audience reactions** - both positive AND negative feedback
+3. **Common criticisms** - what did people dislike or find problematic?
+4. **Controversial aspects** - pacing issues, plot holes, performances, etc.
+
+{'5. Plot details and themes (no plot data in database)' if not plot else ''}
+
+⚠️ **BALANCE IS MANDATORY**:
+- If critics panned it (low scores), your analysis MUST reflect that
+- Include specific criticisms you find (e.g., "Critics noted the uneven pacing...")
+- Don't be overly positive for poorly-received content
+- Be honest about flaws while still finding philosophical value
+- Write like a real human critic who has mixed feelings, not a PR piece
+
+💡 **Examples of balanced writing**:
+- "While the series stumbled with its CGI and uneven tone, it raises interesting questions about..."
+- "Despite a convoluted plot that left many viewers confused, the film's exploration of... remains compelling"
+- "Critics were divided—some found it groundbreaking, others called it pretentious—but undeniably it forces us to confront..."
+
+Remember: Even flawed art can provoke philosophical reflection. Be honest about weaknesses while exploring deeper meanings.
+    """
     
     imdb_id = imdb_data['Const']
     title = imdb_data['Title']
@@ -1162,8 +1242,15 @@ Place these images strategically between sections to break up text and enhance v
     
     # Build prompt with enriched CSV data
     prompt = f"""
-You are a renowned film philosopher and cultural critic writing for "What's Up?" - 
-a sophisticated platform that explores the deeper meaning behind cinema.
+You are a thoughtful film philosopher and cultural critic writing for "What's Up?" - 
+a sophisticated platform that explores deeper meaning behind cinema.
+
+🎭 **YOUR VOICE**: Write like a REAL HUMAN CRITIC with nuanced opinions, not a marketing bot.
+- Have mixed feelings when appropriate
+- Acknowledge flaws and criticism from real reviews
+- Be honest but still find philosophical depth
+- Sound natural and conversational, not overly formal
+- Use contractions, varied sentence length, personal observations
 
 Write a beautifully formatted philosophical blog post about:
 
@@ -1182,9 +1269,13 @@ CAST: {', '.join(cast) if cast else 'Not available'}
 PLOT OVERVIEW: {plot if plot else 'Not available - see web search instructions below'}
 {web_search_instruction}
 
-NOTE: You have rich metadata above. If TMDB plot is missing, use the IMDb URL and title information 
-to perform accurate web searches. The runtime, rating, votes, and release date help verify you're 
-researching the correct film/series.
+NOTE: You have rich metadata above. Use the IMDb URL, title, year, and other details to perform 
+accurate web searches. Check Rotten Tomatoes, Metacritic, IMDb reviews, and critical reception.
+
+🖼️ **IMAGE UNIQUENESS GUARANTEE**: 
+The images provided for this post are UNIQUE and have NEVER been used in any previous post.
+Our system tracks all used images across the entire blog to ensure each post has fresh, never-before-seen visuals.
+This maintains visual diversity and prevents reader fatigue from seeing the same imagery repeatedly.
 
 {image_instructions}
 
@@ -1215,24 +1306,31 @@ FORMATTING REQUIREMENTS (VERY IMPORTANT):
    
 3. STRUCTURE your post like this:
    - Opening: A philosophical quote with {{: .prompt-tip }}
-   - First paragraph: Hook the reader with elegant prose
-   - Section 1 (##): The core philosophical theme
+   - First paragraph: Hook with honest assessment + elegant prose (mention reception if relevant)
+   - Section 1 (##): The core philosophical theme (acknowledge any flaws/criticism first, then explore depth)
    {"- [IMAGE 1 with caption]" if body_images else ""}
-   - Section 2 (##): Character study or ethical dilemmas
+   - Section 2 (##): What works vs. what doesn't - balanced analysis with specific examples from reviews
    - Use a {{: .prompt-info }} blockquote for a key insight
    {"- [IMAGE 2 with caption]" if len(body_images) > 1 else ""}
-   - Section 3 (##): Metaphysical/existential exploration  
+   - Section 3 (##): Despite flaws, the deeper questions it raises (metaphysical/existential exploration)
    {"- [IMAGE 3 with caption]" if len(body_images) > 2 else ""}
-   - Closing section with {{: .prompt-warning }} or regular blockquote
+   - Closing section with {{: .prompt-warning }} - acknowledge mixed legacy but philosophical value
    - Final thought-provoking question or statement
-   {"" if body_images else "- NOTE: No body images available. Do NOT include any image markdown."}
+   {"" if body_images else "- NOTE: No body images available. Do NOT include any image markdown."}  
+   
+   **CRITICAL**: Reference actual critical reception. If reviews were poor, SAY SO explicitly.
+   Examples: "Despite its 32% Rotten Tomatoes score...", "Critics lambasted the pacing, and rightfully so...",
+   "While audiences were divided...", "The film's weaknesses are undeniable, particularly..."
 
 4. Explore existential, metaphysical, or ethical themes - go beyond plot summaries
-5. Connect the work to broader human experiences and philosophical questions
-6. Use elegant prose with occasional poetic flourishes
+5. Connect the work to broader human experiences and philosophical questions  
+6. Use elegant but NATURAL prose - avoid over-the-top flowery language that sounds fake
+   - Mix short punchy sentences with longer reflective ones
+   - Use contractions naturally ("it's", "doesn't", "won't")
+   - Sound like a smart friend analyzing a film, not a stuffy academic
 7. {"Include the streaming section at the end" if streaming_providers else "Do NOT include a streaming section"}
 8. Assign exactly 3 mood tags from: [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
-   Existential, Romantic, Heroic, Dystopian, Surreal]
+   Existential, Romantic, Heroic, Dystopian, Surreal, Flawed, Divisive, Controversial]
 
 🚨 CRITICAL TITLE FORMATTING RULE 🚨
 The 'title' field in frontmatter MUST be plain text only - NO markdown formatting allowed!
