@@ -377,6 +377,9 @@ def select_items():
     print("\n🔄 Checking for queued items from previous run...")
     queued_movie, queued_series = load_queued_items()
     
+    # Check if series CSV is depleted
+    series_depleted = available_series.empty
+    
     if queued_movie and queued_series:
         print("   ✓ Found queued items (already image-validated)")
         movie = queued_movie
@@ -393,8 +396,43 @@ def select_items():
             if not available_series.empty:
                 next_series = available_series.iloc[random.randint(0, len(available_series) - 1)].to_dict()
         return movie, series, next_movie, next_series
+    elif queued_movie:
+        # Only movie was queued (series might have been depleted)
+        print("   ✓ Found queued movie (already image-validated)")
+        movie = queued_movie
+        print(f"   🎬 Movie: {movie['Title']} ({movie['Year']})")
+        # Check if series are now available or still depleted
+        if not available_series.empty:
+            random_idx = random.randint(0, len(available_series) - 1)
+            series = available_series.iloc[random_idx].to_dict()
+            print(f"   📺 Series: {series['Title']} ({series['Year']})")
+            # Select next items
+            available_movies = available_movies[available_movies['Const'] != movie['Const']]
+            if not available_movies.empty:
+                next_movie = available_movies.iloc[random.randint(0, len(available_movies) - 1)].to_dict()
+            remaining_series = available_series.drop(available_series.index[random_idx])
+            if not remaining_series.empty:
+                next_series = remaining_series.iloc[random.randint(0, len(remaining_series) - 1)].to_dict()
+        else:
+            # Series still depleted - select second movie
+            print("   ⚠️ Series CSV depleted - selecting 2nd movie instead")
+            available_movies = available_movies[available_movies['Const'] != movie['Const']]
+            if not available_movies.empty:
+                random_idx = random.randint(0, len(available_movies) - 1)
+                series = available_movies.iloc[random_idx].to_dict()  # Using 'series' variable for 2nd movie
+                print(f"   🎬 Movie #2: {series['Title']} ({series['Year']})")
+                # Select next items
+                remaining_movies = available_movies.drop(available_movies.index[random_idx])
+                if not remaining_movies.empty:
+                    next_movie = remaining_movies.iloc[random.randint(0, len(remaining_movies) - 1)].to_dict()
+        return movie, series, next_movie, next_series
     else:
         print("   ℹ️ No queue found - selecting 4 new items (2 now, 2 next)")
+        
+    # Check if series CSV is depleted
+    if series_depleted:
+        print("\n⚠️ SERIES CSV DEPLETED - Switching to double movie mode!")
+        print("   Will process 2 movies instead of 1 movie + 1 series")
     
     # For Sunday's 5th run, only pick 1 item (alternate weekly) - RANDOMLY
     if fifth_run:
@@ -424,6 +462,7 @@ def select_items():
             print(f"🎬 Sunday Special (Movie fallback - Random): {movie['Title']} ({movie['Year']})")
     else:
         # Normal run: pick both movie and series RANDOMLY
+        # BUT if series is depleted, pick 2 movies instead
         if available_movies.empty:
             print("⚠️ No more movies to process!")
         else:
@@ -437,7 +476,16 @@ def select_items():
             print(f"🎬 Selected movie (random): {movie['Title']} ({movie['Year']})")
         
         if available_series.empty:
-            print("⚠️ No more series to process!")
+            print("⚠️ No more series to process - selecting 2nd movie instead!")
+            # Select a second movie instead of series
+            if not remaining_movies.empty:
+                random_idx = random.randint(0, len(remaining_movies) - 1)
+                series = remaining_movies.iloc[random_idx].to_dict()  # Using 'series' variable for 2nd movie
+                print(f"🎬 Selected movie #2 (random): {series['Title']} ({series['Year']})")
+                # Update remaining for next selection
+                remaining_movies = remaining_movies.drop(remaining_movies.index[random_idx])
+                if not remaining_movies.empty and not next_movie:
+                    next_movie = remaining_movies.iloc[random.randint(0, len(remaining_movies) - 1)].to_dict()
         else:
             # Random selection instead of sequential
             random_idx = random.randint(0, len(available_series) - 1)
@@ -724,22 +772,74 @@ def download_and_process_images(tmdb_data, imdb_id):
             save_used_image(hero['file_path'])
             print(f"   ✓ Marked hero image as used: {hero['file_path']}")
     
-    # Download up to 3 additional body images with SCATTERED selection for diversity
+    # Download up to 3 additional body images with MAXIMUM DIVERSITY
     # CRITICAL: Never reuse the hero image (index 0) in body images
-    # Instead of [1,2,3], use scattered indices like [2, 6, 11] for more variety
+    # Strategy: Pick images that are maximally different from hero and each other
+    selected_indices = [0]  # Track hero index
     body_indices = []
-    if len(available_backdrops) > 12:
-        # If we have many images, pick widely scattered ones (skip hero at index 0)
-        body_indices = [2, 6, 11]
-    elif len(available_backdrops) > 6:
-        # Medium amount, use moderate spacing
-        body_indices = [2, 4, 6]
-    else:
-        # Few images, sequential but SKIP index 0 (hero)
-        body_indices = [1, 2, 3]
     
-    # Ensure indices are within bounds and NEVER include 0 (hero image)
-    body_indices = [idx for idx in body_indices if idx < len(available_backdrops) and idx != 0]
+    # Helper function to check if image is too similar to already selected ones
+    def is_diverse(candidate_idx, selected_idxs, backdrops):
+        candidate = backdrops[candidate_idx]
+        candidate_path = candidate['file_path']
+        candidate_vote = candidate.get('vote_average', 0)
+        candidate_width = candidate.get('width', 0)
+        
+        for sel_idx in selected_idxs:
+            selected = backdrops[sel_idx]
+            sel_path = selected['file_path']
+            sel_vote = selected.get('vote_average', 0)
+            sel_width = selected.get('width', 0)
+            
+            # Check if paths are suspiciously similar (TMDB crops/zooms)
+            # Extract base name without extension
+            candidate_base = candidate_path.split('/')[-1].replace('.jpg', '')
+            selected_base = sel_path.split('/')[-1].replace('.jpg', '')
+            
+            # If file names are too similar, likely same scene
+            if candidate_base[:10] == selected_base[:10]:  # First 10 chars match
+                return False
+            
+            # If dimensions and votes are very similar, likely cropped versions
+            vote_diff = abs(candidate_vote - sel_vote)
+            width_diff = abs(candidate_width - sel_width)
+            if vote_diff < 0.3 and width_diff < 200:  # Too similar
+                return False
+        
+        return True
+    
+    # Build diverse body image list
+    max_attempts = len(available_backdrops)
+    attempt = 0
+    search_idx = 1  # Start after hero
+    
+    while len(body_indices) < 3 and attempt < max_attempts:
+        if search_idx >= len(available_backdrops):
+            break
+        
+        if is_diverse(search_idx, selected_indices, available_backdrops):
+            body_indices.append(search_idx)
+            selected_indices.append(search_idx)
+            # Jump ahead for next search (don't pick adjacent images)
+            search_idx += max(3, len(available_backdrops) // 10)
+        else:
+            search_idx += 1
+        
+        attempt += 1
+    
+    # Fallback: if diversity check is too strict and we got < 3 images, use scattered indices
+    if len(body_indices) < 3:
+        print(f"   ℹ️ Diversity filter too strict ({len(body_indices)} images), using scattered selection")
+        body_indices = []
+        if len(available_backdrops) > 12:
+            body_indices = [3, 8, 15]
+        elif len(available_backdrops) > 6:
+            body_indices = [2, 5, 8]
+        else:
+            body_indices = [1, 2, 3]
+        body_indices = [idx for idx in body_indices if idx < len(available_backdrops) and idx != 0]
+    
+    print(f"   ✓ Selected diverse body image indices: {body_indices}")
     
     for i, idx in enumerate(body_indices, 1):
         backdrop = available_backdrops[idx]
@@ -1317,22 +1417,19 @@ Remember: Even flawed art can provoke philosophical reflection. Be honest about 
     # Determine image paths
     hero_image = f"/assets/img/posts/{imdb_id}_hero.webp" if has_images else ""
     body_images = []
-    if has_images and image_count > 1:
-        for i in range(1, min(image_count, 4)):  # Max 3 body images
-            body_images.append(f"/assets/img/posts/{imdb_id}_{i}.webp")
-    
-    # Build image instructions - use PLACEHOLDERS that we'll replace with code
+    # Build image instructions - use PLACEHOLDERS ONLY (no actual paths)
     image_instructions = ""
-    if body_images:
+    if has_images and image_count > 1:
+        num_body_images = min(image_count - 1, 3)  # Exclude hero, max 3 body
         image_instructions = f"""
-IMPORTANT - EMBED IMAGE PLACEHOLDERS in your content:
-- Use [IMAGE_1] for the first body image (place between sections)
-{"- Use [IMAGE_2] for the second body image" if len(body_images) > 1 else ""}
-{"- Use [IMAGE_3] for the third body image" if len(body_images) > 2 else ""}
+CRITICAL - USE ONLY THESE EXACT PLACEHOLDER TAGS:
+- [IMAGE_1] for the first body image (place between sections)
+{f"- [IMAGE_2] for the second body image" if num_body_images > 1 else ""}
+{f"- [IMAGE_3] for the third body image" if num_body_images > 2 else ""}
 
-Place these placeholders strategically between sections to break up text.
-DO NOT write the actual markdown syntax - just use the placeholder tags like [IMAGE_1].
-We will automatically convert them to properly formatted images after generation.
+Place these placeholders strategically to break up text and illustrate key themes.
+NEVER write image markdown yourself - ONLY use [IMAGE_1], [IMAGE_2], [IMAGE_3] tags.
+These will be automatically converted to images after generation.
 """
     
     # Build prompt with enriched CSV data
