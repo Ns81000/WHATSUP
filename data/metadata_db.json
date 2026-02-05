@@ -131,6 +131,28 @@
       ],
       "url": "/posts/house-of-the-dragon/",
       "date": "2026-02-04T22:58:06.759922"
+    },
+    {
+      "imdb_id": "tt0121766",
+      "title": "Star Wars: Episode III - Revenge of the Sith",
+      "moods": [
+        "Existential",
+        "Melancholy",
+        "Intense"
+      ],
+      "url": "/posts/star-wars-episode-iii-revenge-of-the-sith/",
+      "date": "2026-02-05T04:57:06.988860"
+    },
+    {
+      "imdb_id": "tt4574334",
+      "title": "Stranger Things",
+      "moods": [
+        "Existential",
+        "Nostalgic",
+        "Intense"
+      ],
+      "url": "/posts/stranger-things/",
+      "date": "2026-02-05T04:57:27.620642"
     }
   ]
 }
