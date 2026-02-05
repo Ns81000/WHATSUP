@@ -627,6 +627,24 @@ def download_and_process_images(tmdb_data, imdb_id):
     else:
         print(f"   ✓ {len(available_backdrops)} unused images available")
     
+    # SMART FILTERING: Prefer landscape scenes over posters
+    # Filter by aspect ratio > 1.5 (widescreen scenes, not portrait posters)
+    landscape_images = [b for b in available_backdrops if b.get('aspect_ratio', 0) > 1.5]
+    
+    # If we have landscape images, prefer those; otherwise use all available
+    if landscape_images:
+        available_backdrops = landscape_images
+        print(f"   ✓ Filtered to {len(landscape_images)} landscape/widescreen images (no posters)")
+    else:
+        print(f"   ⚠️ No landscape images found, using all {len(available_backdrops)} images")
+    
+    # Further prefer images without text overlays (language-neutral)
+    text_free_images = [b for b in available_backdrops if b.get('iso_639_1') is None]
+    
+    if text_free_images and len(text_free_images) >= 4:
+        available_backdrops = text_free_images
+        print(f"   ✓ Found {len(text_free_images)} text-free images (no language overlays)")
+    
     # Sort by quality (vote_average * width)
     available_backdrops.sort(
         key=lambda x: x.get('vote_average', 0) * x.get('width', 0), 
@@ -637,7 +655,7 @@ def download_and_process_images(tmdb_data, imdb_id):
     hero = available_backdrops[0]
     hero_url = f"{TMDB_IMAGE_BASE}original{hero['file_path']}"
     
-    print(f"📸 Downloading hero image (NEW, not used before)...")
+    print(f"📸 Downloading hero image (landscape scene, aspect: {hero.get('aspect_ratio', 'N/A'):.2f})...")
     hero_data = download_image(hero_url)
     
     if hero_data:
@@ -648,8 +666,24 @@ def download_and_process_images(tmdb_data, imdb_id):
             save_used_image(hero['file_path'])
             print(f"   ✓ Marked hero image as used: {hero['file_path']}")
     
-    # Download up to 3 additional body images
-    for i, backdrop in enumerate(available_backdrops[1:4], 1):
+    # Download up to 3 additional body images with SCATTERED selection for diversity
+    # Instead of [1,2,3], use scattered indices like [1, 5, 10] for more variety
+    body_indices = []
+    if len(available_backdrops) > 10:
+        # If we have many images, pick scattered ones for maximum diversity
+        body_indices = [1, 5, 10]
+    elif len(available_backdrops) > 5:
+        # Medium amount, use moderate spacing
+        body_indices = [1, 3, 5]
+    else:
+        # Few images, just use sequential
+        body_indices = [1, 2, 3]
+    
+    # Ensure indices are within bounds
+    body_indices = [idx for idx in body_indices if idx < len(available_backdrops)]
+    
+    for i, idx in enumerate(body_indices, 1):
+        backdrop = available_backdrops[idx]
         img_url = f"{TMDB_IMAGE_BASE}w1280{backdrop['file_path']}"
         
         print(f"📸 Downloading body image {i} (NEW, not used before)...")
@@ -1328,16 +1362,28 @@ FORMATTING REQUIREMENTS (VERY IMPORTANT):
    - Mix short punchy sentences with longer reflective ones
    - Use contractions naturally ("it's", "doesn't", "won't")
    - Sound like a smart friend analyzing a film, not a stuffy academic
+   
+🎯 **ORIGINALITY MANDATE - ZERO REPETITION**:
+   - ❌ NEVER use these overused phrases:
+     * "This is where we discover the true weight of choice — not in the outcome, but in the becoming"
+     * "The hero's journey isn't just about what they achieve, but..."
+     * "This isn't just a film; it's..."
+     * "What does it mean to be..."
+   - ✅ Create FRESH, ORIGINAL observations for each post
+   - ✅ Vary your sentence structures and philosophical angles
+   - ✅ Make each post feel unique and spontaneous, not templated
+   - ✅ Use different philosophical frameworks (existentialism, stoicism, nihilism, etc.)
 7. {"Include the streaming section at the end" if streaming_providers else "Do NOT include a streaming section"}
 8. Assign exactly 3 mood tags from: [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
    Existential, Romantic, Heroic, Dystopian, Surreal, Flawed, Divisive, Controversial]
 
-🚨 CRITICAL TITLE FORMATTING RULE 🚨
-The 'title' field in frontmatter MUST be plain text only - NO markdown formatting allowed!
-- ❌ NEVER use *italics*, **bold**, or ***bold italics*** in the title field
-- ❌ NO asterisks (*), underscores (_), or backticks (`) in the title
+🚨 CRITICAL FRONTMATTER FORMATTING RULES 🚨
+The 'title' and 'description' fields in frontmatter MUST be plain text only - NO markdown formatting allowed!
+- ❌ NEVER use *italics*, **bold**, or ***bold italics*** in title or description fields
+- ❌ NO asterisks (*), underscores (_), or backticks (`) in title or description
 - ✅ Use plain text only, with proper punctuation and capitalization
-- ✅ You can reference film titles without italics in the title field
+- ✅ Reference film titles without any markdown formatting in these fields
+- ✅ Example: "Exploring Inception's dream logic" NOT "Exploring *Inception's* dream logic"
 
 OUTPUT FORMAT (Jekyll Frontmatter + Markdown):
 
@@ -1349,7 +1395,7 @@ tags: [mood1, mood2, mood3]
 {"image:" if has_images else "# No image available"}
 {f"  path: {hero_image}" if has_images else ""}
 {f'  alt: "Evocative description of the scene"' if has_images else ""}
-description: "Compelling meta description exploring the film's themes (150-160 chars)"
+description: "Compelling meta description with NO asterisks or markdown - plain text only (150-160 chars)"
 ---
 
 > "A profound opening quote that captures the essence of the work" — Philosopher or Character

@@ -6,7 +6,7 @@ tags: [Heroic, Divisive, Existential]
 image:
   path: /assets/img/posts/tt2631186_hero.webp
   alt: "The mighty Shivudu raising a giant statue in Baahubali: The Beginning"
-description: "Dive deep into S.S. Rajamouli's epic *Baahubali: The Beginning*, exploring its grand spectacle, complex characters, and the philosophical questions it poses about destiny, power, and identity, despite its narrative imperfections."
+description: "Dive deep into S.S. Rajamouli's epic Baahubali: The Beginning, exploring its grand spectacle, complex characters, and the philosophical questions it poses about destiny, power, and identity, despite its narrative imperfections."
 ---
 
 > "We are not makers of history. We are made by history." — Martin Luther King Jr.
