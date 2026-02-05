@@ -1262,16 +1262,18 @@ Remember: Even flawed art can provoke philosophical reflection. Be honest about 
         for i in range(1, min(image_count, 4)):  # Max 3 body images
             body_images.append(f"/assets/img/posts/{imdb_id}_{i}.webp")
     
-    # Build image instructions
+    # Build image instructions - use PLACEHOLDERS that we'll replace with code
     image_instructions = ""
     if body_images:
         image_instructions = f"""
-IMPORTANT - EMBED THESE IMAGES in your content:
-- Image 1: ![Scene from {title}]({body_images[0]}){{: .rounded-10 w-75 .shadow}}
-{"- Image 2: ![Scene from " + title + "](" + body_images[1] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 1 else ""}
-{"- Image 3: ![Scene from " + title + "](" + body_images[2] + "){: .rounded-10 w-75 .shadow}" if len(body_images) > 2 else ""}
+IMPORTANT - EMBED IMAGE PLACEHOLDERS in your content:
+- Use [IMAGE_1] for the first body image (place between sections)
+{"- Use [IMAGE_2] for the second body image" if len(body_images) > 1 else ""}
+{"- Use [IMAGE_3] for the third body image" if len(body_images) > 2 else ""}
 
-Place these images strategically between sections to break up text and enhance visual appeal.
+Place these placeholders strategically between sections to break up text.
+DO NOT write the actual markdown syntax - just use the placeholder tags like [IMAGE_1].
+We will automatically convert them to properly formatted images after generation.
 """
     
     # Build prompt with enriched CSV data
@@ -1493,6 +1495,26 @@ Key themes to explore:
 
 
 # ==================== METADATA TRACKING ====================
+
+def insert_images_into_content(content, imdb_id, body_images, title):
+    """Replace image placeholders with actual markdown image syntax.
+    
+    Replaces [IMAGE_1], [IMAGE_2], [IMAGE_3] with properly formatted markdown.
+    This ensures exact paths are used, not AI-generated paths that could be wrong.
+    """
+    if not body_images:
+        return content
+    
+    # Replace each placeholder with actual markdown
+    for i, img_path in enumerate(body_images, 1):
+        placeholder = f"[IMAGE_{i}]"
+        # Create proper markdown with exact path
+        markdown = f"![Scene from {title}]({img_path}){{{{: .rounded-10 w-75 .shadow}}}}"
+        content = content.replace(placeholder, markdown)
+        print(f"   ✓ Replaced {placeholder} with {img_path}")
+    
+    return content
+
 
 def sanitize_title_in_content(content):
     """Remove markdown formatting from the title field in frontmatter.
@@ -1799,7 +1821,18 @@ def process_item(item_data, media_type_label):
     
     print(f"   ✓ Generated {len(content)} characters")
     
-    # Step 4.5: Sanitize title to remove any markdown formatting
+    # Step 4.5: Insert actual image paths (replace placeholders)
+    if has_images and image_count > 1:
+        print("   ✓ Inserting images with correct paths...")
+        # Extract body image paths from images list
+        body_image_paths = []
+        for img_type, img_path in images:
+            if img_type.startswith('body_'):
+                body_image_paths.append(f"/{img_path}")
+        if body_image_paths:
+            content = insert_images_into_content(content, imdb_id, body_image_paths, title)
+    
+    # Step 4.6: Sanitize title to remove any markdown formatting
     print("   ✓ Sanitizing title field...")
     content = sanitize_title_in_content(content)
     

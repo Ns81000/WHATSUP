@@ -1,5 +1,11 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <!-- Disable all caching - force fresh content on every visit -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f7f7">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1b1b1e">
   <meta name="mobile-web-app-capable" content="yes">
@@ -87,13 +93,13 @@
   {% endunless %}
 
   <!-- Theme style -->
-  <link rel="stylesheet" href="{{ '/assets/css/:THEME.css' | replace: ':THEME', site.theme | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/:THEME.css' | replace: ':THEME', site.theme | append: '?v=' | append: site.time | date: '%s' | relative_url }}">
 
   <!-- Web Font -->
-  <link rel="stylesheet" href="{{ site.data.origin[type].webfonts | relative_url }}">
+  <link rel="stylesheet" href="{{ site.data.origin[type].webfonts | append: '?v=' | append: site.time | date: '%s' | relative_url }}">
 
   <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="{{ site.data.origin[type].fontawesome.css | relative_url }}">
+  <link rel="stylesheet" href="{{ site.data.origin[type].fontawesome.css | append: '?v=' | append: site.time | date: '%s' | relative_url }}">
 
   <!-- 3rd-party Dependencies -->
 
@@ -112,7 +118,7 @@
 
   <!-- Scripts -->
 
-  <script src="{{ '/assets/js/dist/theme.min.js' | relative_url }}"></script>
+  <script src="{{ '/assets/js/dist/theme.min.js' | append: '?v=' | append: site.time | date: '%s' | relative_url }}"></script>
 
   {% include js-selector.html lang=lang %}
 

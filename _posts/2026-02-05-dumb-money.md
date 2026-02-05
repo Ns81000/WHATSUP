@@ -20,7 +20,7 @@ Craig Gillespie's *Dumb Money* crashes into the chaotic, meme-fueled world of th
 
 However, some critics noted that the film, in its efforts to simplify the intricate financial mechanics for a mass audience, occasionally veers into an almost cartoonish portrayal of its antagonists. This simplification, while making the story digestible, perhaps diminishes the opportunity for a deeper, more nuanced exploration of systemic greed. Despite this, the film powerfully illustrates the **construct of value** itself. What is a stock truly "worth"? Is it the underlying fundamentals of a company, or is it a collective agreement, a shared narrative, a **performative act** driven by millions of individual wills? The GameStop saga, as depicted, forces us to confront the arbitrary nature of market value, suggesting that the "truth" of a company's worth is often less about intrinsic merit and more about the stories we tell ourselves, and the power dynamics that dictate whose story wins.
 
-![Keith Gill (Paul Dano) streams live, his characteristic headband on, looking directly into the camera with earnest conviction.](/assets/img/posts/posts/tt13957560_1.webp){: .rounded-10 w-75 .shadow}
+![Keith Gill (Paul Dano) streams live, his characteristic headband on, looking directly into the camera with earnest conviction.](/assets/img/posts/tt13957560_1.webp){: .rounded-10 w-75 .shadow}
 _Paul Dano as Keith Gill, embodying the everyman prophet of the GameStop revolution._
 
 ---
@@ -34,7 +34,7 @@ Beyond the market mechanics, *Dumb Money* truly shines in its portrayal of the d
 
 The film does a commendable job of showcasing the exhilarating highs of collective action, the sense of camaraderie and shared purpose that emerged from the Reddit forum r/wallstreetbets. Yet, it doesn't shy away from the precipitous falls, the very real emotional and financial toll taken when the billionaires "fight back." Critics noted that the pacing could feel a bit rushed at times, particularly in conveying the rapid emotional swings from euphoria to despair, which might have benefited from a slightly longer runtime or more focused character arcs. Nevertheless, the film asks profound questions about the **ethics of speculation**, the moral responsibility of those who manipulate markets, and the inherent imbalance of power when a coordinated online community challenges the titans of finance. It's a compelling look at how digital connectivity can forge new forms of **solidarity** and **rebellion**, making it a truly **divisive** subject for some who see it as market manipulation and others as a justified uprising.
 
-![America Ferrera as a working-class investor, her face etched with the anxieties and hopes tied to her GameStop shares.](/assets/img/posts/posts/tt13957560_2.webp){: .rounded-10 w-75 .shadow}
+![America Ferrera as a working-class investor, her face etched with the anxieties and hopes tied to her GameStop shares.](/assets/img/posts/tt13957560_2.webp){: .rounded-10 w-75 .shadow}
 _America Ferrera portrays the deeply personal stakes behind the market's abstract numbers._
 
 ---
@@ -45,7 +45,7 @@ Ultimately, *Dumb Money* is less about the intricacies of stock trading and more
 
 The movie, despite its energetic and often comedic tone, raises **existential** questions about the very fabric of our capitalist society. Is it truly a meritocracy, or is it a game where the house always wins? Can individual or collective action truly dismantle entrenched power, or does the system simply adapt and absorb these challenges? The GameStop phenomenon, as presented in *Dumb Money*, becomes a powerful metaphor for any movement that seeks to disrupt the status quo, reminding us that the fight for **justice** often means challenging not just policies, but the very narratives that uphold existing power structures.
 
-![Keith Gill (Paul Dano) sits before a congressional committee, a calm but defiant figure facing the scrutiny of the establishment.](/assets/img/posts/posts/tt13957560_3.webp){: .rounded-10 w-75 .shadow}
+![Keith Gill (Paul Dano) sits before a congressional committee, a calm but defiant figure facing the scrutiny of the establishment.](/assets/img/posts/tt13957560_3.webp){: .rounded-10 w-75 .shadow}
 _The confrontation: individual conviction against institutional power, a tableau of modern rebellion._
 
 ---
