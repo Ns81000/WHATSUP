@@ -35,7 +35,7 @@ The film masterfully constructs a complex ethical labyrinth where every choice c
 
 Obi-Wan Kenobi, as the stoic counterpoint, embodies the Jedi ideal of selfless duty, yet even his unwavering resolve is tested to its breaking point. His final confrontation with Anakin on Mustafar is not just a battle of lightsabers; it's a **clash of philosophical worldviews**, a devastating display of the personal cost of ideological conflict. Padmé Amidala, caught in the eye of this galactic storm, represents the innocent casualty of grand ideological wars, her hope and love consumed by the darkness her beloved embraces. Her death is not simply medical; it's a testament to the **psychic burden** of witnessing the unraveling of everything one holds dear, a heart broken by the weight of a galaxy's despair.
 
-![Obi-Wan Kenobi confronts Anakin Skywalker on the fiery landscape of Mustafar](/assets/img/posts/tt0121766_1.webp){: .rounded-10 w-75 .shadow}
+![Obi-Wan Kenobi confronts Anakin Skywalker on the fiery landscape of Mustafar](/assets/img/posts/tt0121766_2.webp){: .rounded-10 w-75 .shadow}
 _The fiery duel on Mustafar symbolizes the tragic end of a brotherhood, consumed by ideological conflict._
 
 ## Beyond the Surface: Metaphysics of the Force and the Fall of Republics
