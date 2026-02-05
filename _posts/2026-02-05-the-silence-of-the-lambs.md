@@ -36,7 +36,7 @@ However, a significant and valid criticism, one that deserves to be squarely add
 
 This specific aspect of the film serves as a potent reminder that even highly acclaimed works can carry unintended, or perhaps underdeveloped, social implications that can be deeply hurtful. It forces us to consider the **ethics of representation** and the responsibility of storytellers, especially when dealing with marginalized identities.
 
-![A close-up of Hannibal Lecter's face, his eyes fixed with an unnerving intensity, a profound sense of intelligence and menace emanating from him.](/assets/img/tt0102926_2.webp){: .rounded-10 w-75 .shadow}
+![A close-up of Hannibal Lecter's face, his eyes fixed with an unnerving intensity, a profound sense of intelligence and menace emanating from him.](/assets/img/posts/tt0102926_2.webp){: .rounded-10 w-75 .shadow}
 _Hannibal Lecter's gaze, a window into a terrifyingly brilliant mind._
 
 ---
@@ -52,7 +52,7 @@ Lecter, with his intellectual sadism, isn't just a serial killer; he's a pervers
 
 The "silence of the lambs" isn't just about Clarice's childhood trauma; it’s an **existential metaphor** for the human desire for peace from internal suffering, a peace that often remains elusive, a constant pursuit against the bleating anxieties of existence.
 
-![Clarice Starling, in a tense moment, holds a flashlight, her face illuminated by its beam in a dark, confined space, conveying suspense and isolation.](/assets/tt0102926_3.webp){: .rounded-10 w-75 .shadow}
+![Clarice Starling, in a tense moment, holds a flashlight, her face illuminated by its beam in a dark, confined space, conveying suspense and isolation.](/assets/img/posts/tt0102926_3.webp){: .rounded-10 w-75 .shadow}
 _In the dark, Clarice's flashlight pierces the gloom, a metaphor for seeking truth in terrifying obscurity._
 
 ---
