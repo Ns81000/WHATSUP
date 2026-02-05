@@ -344,6 +344,11 @@ def select_items():
     """
     Select items for this run.
     
+    Strategy:
+    - First checks if items are queued from previous run
+    - If queued: Use those (already image-validated)
+    - If not: Randomly select 2 movies + 2 series, process 2, queue 2
+    
     Normal runs: 1 movie + 1 series = 2 posts
     Sunday 5th run: Only 1 item (alternating movie/series weekly)
     """
@@ -367,6 +372,29 @@ def select_items():
     series = None
     next_movie = None
     next_series = None
+    
+    # Try to load queued items from previous run
+    print("\n🔄 Checking for queued items from previous run...")
+    queued_movie, queued_series = load_queued_items()
+    
+    if queued_movie and queued_series:
+        print("   ✓ Found queued items (already image-validated)")
+        movie = queued_movie
+        series = queued_series
+        print(f"   🎬 Movie: {movie['Title']} ({movie['Year']})")
+        print(f"   📺 Series: {series['Title']} ({series['Year']})")
+        # Select fresh next items for queue
+        if not available_movies.empty:
+            available_movies = available_movies[available_movies['Const'] != movie['Const']]
+            if not available_movies.empty:
+                next_movie = available_movies.iloc[random.randint(0, len(available_movies) - 1)].to_dict()
+        if not available_series.empty:
+            available_series = available_series[available_series['Const'] != series['Const']]
+            if not available_series.empty:
+                next_series = available_series.iloc[random.randint(0, len(available_series) - 1)].to_dict()
+        return movie, series, next_movie, next_series
+    else:
+        print("   ℹ️ No queue found - selecting 4 new items (2 now, 2 next)")
     
     # For Sunday's 5th run, only pick 1 item (alternate weekly) - RANDOMLY
     if fifth_run:
@@ -471,6 +499,36 @@ def fetch_tmdb_data(imdb_id):
     except requests.RequestException as e:
         print(f"❌ TMDB details error: {e}")
         return None, None
+
+
+def load_queued_items():
+    """Load items queued from previous run."""
+    queue_file = DATA_DIR / 'processing_queue.json'
+    if not queue_file.exists():
+        return None, None
+    
+    try:
+        with open(queue_file, 'r', encoding='utf-8') as f:
+            queue = json.load(f)
+        return queue.get('movie'), queue.get('series')
+    except Exception as e:
+        print(f"   ⚠️ Error loading queue: {e}")
+        return None, None
+
+
+def save_queued_items(movie, series):
+    """Save items for next run's processing."""
+    queue_file = DATA_DIR / 'processing_queue.json'
+    queue = {'movie': movie, 'series': series}
+    
+    with open(queue_file, 'w', encoding='utf-8') as f:
+        json.dump(queue, f, indent=2)
+    
+    print(f"\n💾 Queued for next run:")
+    if movie:
+        print(f"   🎬 Movie: {movie['Title']} ({movie['Year']})")
+    if series:
+        print(f"   📺 Series: {series['Title']} ({series['Year']})")
 
 
 def check_image_availability(imdb_id):
@@ -667,20 +725,21 @@ def download_and_process_images(tmdb_data, imdb_id):
             print(f"   ✓ Marked hero image as used: {hero['file_path']}")
     
     # Download up to 3 additional body images with SCATTERED selection for diversity
-    # Instead of [1,2,3], use scattered indices like [1, 5, 10] for more variety
+    # CRITICAL: Never reuse the hero image (index 0) in body images
+    # Instead of [1,2,3], use scattered indices like [2, 6, 11] for more variety
     body_indices = []
-    if len(available_backdrops) > 10:
-        # If we have many images, pick scattered ones for maximum diversity
-        body_indices = [1, 5, 10]
-    elif len(available_backdrops) > 5:
+    if len(available_backdrops) > 12:
+        # If we have many images, pick widely scattered ones (skip hero at index 0)
+        body_indices = [2, 6, 11]
+    elif len(available_backdrops) > 6:
         # Medium amount, use moderate spacing
-        body_indices = [1, 3, 5]
+        body_indices = [2, 4, 6]
     else:
-        # Few images, just use sequential
+        # Few images, sequential but SKIP index 0 (hero)
         body_indices = [1, 2, 3]
     
-    # Ensure indices are within bounds
-    body_indices = [idx for idx in body_indices if idx < len(available_backdrops)]
+    # Ensure indices are within bounds and NEVER include 0 (hero image)
+    body_indices = [idx for idx in body_indices if idx < len(available_backdrops) and idx != 0]
     
     for i, idx in enumerate(body_indices, 1):
         backdrop = available_backdrops[idx]
@@ -2096,7 +2155,13 @@ def main():
         return
     
     # Pre-check next items (Early Warning System)
-    pre_check_next_items(next_movie, next_series)
+    all_have_images = pre_check_next_items(next_movie, next_series)
+    
+    # Save next items to queue if they passed image check
+    if all_have_images and (next_movie or next_series):
+        save_queued_items(next_movie, next_series)
+    elif not all_have_images:
+        print("   ⚠️ Next items failed image check - NOT queued")
     
     # Process current items
     success_count = 0
