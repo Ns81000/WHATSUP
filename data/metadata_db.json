@@ -153,6 +153,28 @@
       ],
       "url": "/posts/stranger-things/",
       "date": "2026-02-05T04:57:27.620642"
+    },
+    {
+      "imdb_id": "tt2631186",
+      "title": "Baahubali: The Beginning",
+      "moods": [
+        "Heroic",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/baahubali-the-beginning/",
+      "date": "2026-02-05T12:28:07.329642"
+    },
+    {
+      "imdb_id": "tt15358446",
+      "title": "Dead Boy Detectives",
+      "moods": [
+        "Existential",
+        "Hopeful",
+        "Flawed"
+      ],
+      "url": "/posts/dead-boy-detectives/",
+      "date": "2026-02-05T12:28:29.952185"
     }
   ]
 }
