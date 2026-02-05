@@ -1,0 +1,42 @@
+{
+  "movie": {
+    "Position": 126,
+    "Const": "tt7657566",
+    "Created": "2024-04-20",
+    "Modified": "2024-04-20",
+    "Description": NaN,
+    "Title": "Death on the Nile",
+    "Original Title": "Death on the Nile",
+    "URL": "https://www.imdb.com/title/tt7657566/",
+    "Title Type": "Movie",
+    "IMDb Rating": 6.3,
+    "Runtime (mins)": 127,
+    "Year": 2022,
+    "Genres": "Crime, Drama, Mystery",
+    "Num Votes": 207969,
+    "Release Date": "2022-02-11",
+    "Directors": "Kenneth Branagh",
+    "Your Rating": NaN,
+    "Date Rated": NaN
+  },
+  "series": {
+    "Position": 57,
+    "Const": "tt7366338",
+    "Created": "2024-10-05",
+    "Modified": "2024-10-05",
+    "Description": NaN,
+    "Title": "Chernobyl",
+    "Original Title": "Chernobyl",
+    "URL": "https://www.imdb.com/title/tt7366338/",
+    "Title Type": "TV Mini Series",
+    "IMDb Rating": 9.3,
+    "Runtime (mins)": 60.0,
+    "Year": 2019,
+    "Genres": "Drama, History, Thriller",
+    "Num Votes": 1010282,
+    "Release Date": "2019-05-06",
+    "Directors": NaN,
+    "Your Rating": NaN,
+    "Date Rated": NaN
+  }
+}

@@ -241,6 +241,28 @@
       ],
       "url": "/posts/the-day-of-the-jackal/",
       "date": "2026-02-05T15:15:58.598879"
+    },
+    {
+      "imdb_id": "tt15327088",
+      "title": "Kantara",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Heroic"
+      ],
+      "url": "/posts/kantara/",
+      "date": "2026-02-05T15:51:30.164249"
+    },
+    {
+      "imdb_id": "tt13623148",
+      "title": "I Am Groot",
+      "moods": [
+        "Existential",
+        "Flawed",
+        "Hopeful"
+      ],
+      "url": "/posts/i-am-groot/",
+      "date": "2026-02-05T15:51:52.841236"
     }
   ]
 }
