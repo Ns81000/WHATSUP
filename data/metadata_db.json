@@ -175,6 +175,28 @@
       ],
       "url": "/posts/dead-boy-detectives/",
       "date": "2026-02-05T12:28:29.952185"
+    },
+    {
+      "imdb_id": "tt13957560",
+      "title": "Dumb Money",
+      "moods": [
+        "Existential",
+        "Divisive",
+        "Hopeful"
+      ],
+      "url": "/posts/dumb-money/",
+      "date": "2026-02-05T12:47:17.616039"
+    },
+    {
+      "imdb_id": "tt3007572",
+      "title": "Locke & Key",
+      "moods": [
+        "Flawed",
+        "Melancholy",
+        "Existential"
+      ],
+      "url": "/posts/locke-key/",
+      "date": "2026-02-05T12:47:40.739541"
     }
   ]
 }
