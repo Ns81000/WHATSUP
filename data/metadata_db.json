@@ -263,6 +263,28 @@
       ],
       "url": "/posts/i-am-groot/",
       "date": "2026-02-05T15:51:52.841236"
+    },
+    {
+      "imdb_id": "tt7657566",
+      "title": "Death on the Nile",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/death-on-the-nile/",
+      "date": "2026-02-06T04:55:22.028010"
+    },
+    {
+      "imdb_id": "tt7366338",
+      "title": "Chernobyl",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Melancholy"
+      ],
+      "url": "/posts/chernobyl/",
+      "date": "2026-02-06T04:55:48.604299"
     }
   ]
 }
