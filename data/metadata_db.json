@@ -285,6 +285,28 @@
       ],
       "url": "/posts/chernobyl/",
       "date": "2026-02-06T04:55:48.604299"
+    },
+    {
+      "imdb_id": "tt1318514",
+      "title": "Rise of the Planet of the Apes",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Flawed"
+      ],
+      "url": "/posts/rise-of-the-planet-of-the-apes/",
+      "date": "2026-02-06T12:45:46.345594"
+    },
+    {
+      "imdb_id": "tt2085059",
+      "title": "Black Mirror",
+      "moods": [
+        "Existential",
+        "Dystopian",
+        "Divisive"
+      ],
+      "url": "/posts/black-mirror/",
+      "date": "2026-02-06T12:46:12.125715"
     }
   ]
 }
