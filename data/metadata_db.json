@@ -329,6 +329,28 @@
       ],
       "url": "/posts/the-family-man/",
       "date": "2026-02-07T04:43:40.463508"
+    },
+    {
+      "imdb_id": "tt2112124",
+      "title": "Chennai Express",
+      "moods": [
+        "Divisive",
+        "Romantic",
+        "Flawed"
+      ],
+      "url": "/posts/chennai-express/",
+      "date": "2026-02-07T12:25:04.179232"
+    },
+    {
+      "imdb_id": "tt9813792",
+      "title": "From",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Divisive"
+      ],
+      "url": "/posts/from/",
+      "date": "2026-02-07T12:25:24.554786"
     }
   ]
 }
