@@ -1661,14 +1661,75 @@ def insert_images_into_content(content, imdb_id, body_images, title):
     if not body_images:
         return content
     
-    # Replace each placeholder with actual markdown
+    # Pass 1: Replace [IMAGE_X] placeholders (when Gemini obeys instructions)
+    placeholders_found = 0
     for i, img_path in enumerate(body_images, 1):
         placeholder = f"[IMAGE_{i}]"
-        # Create proper markdown with exact path
-        markdown = f"![Scene from {title}]({img_path}){{{{: .rounded-10 w-75 .shadow}}}}"
-        content = content.replace(placeholder, markdown)
-        print(f"   ✓ Replaced {placeholder} with {img_path}")
+        if placeholder in content:
+            markdown = f"![Scene from {title}]({img_path}){{{{: .rounded-10 w-75 .shadow}}}}"
+            content = content.replace(placeholder, markdown)
+            placeholders_found += 1
+            print(f"   ✓ Replaced {placeholder} with {img_path}")
     
+    if placeholders_found == len(body_images):
+        return content
+    
+    # Pass 2 (fallback): Gemini wrote its own image markdown instead of placeholders.
+    # Find all ![alt](src){attrs} in the BODY (skip frontmatter) and replace
+    # any non-local paths with the correct local body image paths.
+    print(f"   ⚠️ Only {placeholders_found}/{len(body_images)} placeholders found — running fallback image replacement")
+    
+    # Split frontmatter from body
+    parts = content.split('---', 2)
+    if len(parts) >= 3:
+        frontmatter = parts[0] + '---' + parts[1] + '---'
+        body = parts[2]
+    else:
+        frontmatter = ''
+        body = content
+    
+    # Find all image markdown in body: ![any alt](any src)
+    img_pattern = re.compile(r'(!\[[^\]]*\])\(([^)]+)\)')
+    matches = list(img_pattern.finditer(body))
+    
+    if not matches:
+        print(f"   ⚠️ No image markdown found in body content")
+        return content
+    
+    # Filter to only images with WRONG paths (not already correct local paths)
+    wrong_images = []
+    for m in matches:
+        src = m.group(2)
+        if not src.startswith('/assets/img/posts/'):
+            wrong_images.append(m)
+    
+    if not wrong_images:
+        print(f"   ✓ All body images already have correct local paths")
+        return content
+    
+    # Replace wrong-path images sequentially with available body images
+    img_idx = 0
+    offset = 0
+    for m in wrong_images:
+        if img_idx >= len(body_images):
+            break
+        
+        old_src = m.group(2)
+        new_src = body_images[img_idx]
+        alt_text = m.group(1)
+        
+        old_full = m.group(0)
+        new_full = f"{alt_text}({new_src})"
+        
+        start = m.start() + offset
+        end = m.end() + offset
+        body = body[:start] + new_full + body[end:]
+        offset += len(new_full) - len(old_full)
+        
+        img_idx += 1
+        print(f"   ✓ Fallback replaced: {old_src[:50]}... → {new_src}")
+    
+    content = frontmatter + body
     return content
 
 

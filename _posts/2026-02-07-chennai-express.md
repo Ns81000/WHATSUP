@@ -25,7 +25,7 @@ Key themes to explore:
 - **Escape as a Catalyst** — Meena's flight ignites her true self.
 - **The Burden of Obligation** — how family duty shapes our early lives.
 
-![A scene of Rahul and Meena on a train, looking out with a mix of apprehension and wonder as the landscape rushes by.](path/to/image1.webp){: .rounded-10 w-75 .shadow}
+![A scene of Rahul and Meena on a train, looking out with a mix of apprehension and wonder as the landscape rushes by.](/assets/img/posts/tt2112124_1.webp){: .rounded-10 w-75 .shadow}
 _Rahul and Meena, two souls thrown together by circumstance, embarking on a journey far grander than they initially perceived._
 
 ## The Logic of Chaos: Finding Meaning in the Absurd
@@ -39,7 +39,7 @@ However, what if we approach this perceived "illogic" from an **existential pers
 
 The film's chaotic energy, then, can be seen as mirroring the **inherent unpredictability of human connection**. Their journey isn't a smooth, planned progression, but a series of reactive, desperate moments that somehow, against all odds, lead to genuine affection. It’s a testament to the idea that meaning and deep connection can emerge not *despite* the chaos, but *because* of it. The film asks us to embrace the unexpected, to find our footing in the whirlwind, and to discover that sometimes, the most profound experiences are born from the least rational paths.
 
-![Deepika Padukone, radiant and defiant, gazing intently at Shah Rukh Khan, a silent conversation passing between them amidst a vibrant backdrop.](path/to/image2.webp){: .rounded-10 w-75 .shadow}
+![Deepika Padukone, radiant and defiant, gazing intently at Shah Rukh Khan, a silent conversation passing between them amidst a vibrant backdrop.](/assets/img/posts/tt2112124_2.webp){: .rounded-10 w-75 .shadow}
 _Amidst the whirlwind of events, a gaze that transcends words, speaking volumes about burgeoning connection and mutual understanding._
 
 ## Bridging Divides: A Flawed Exploration of 'The Other'

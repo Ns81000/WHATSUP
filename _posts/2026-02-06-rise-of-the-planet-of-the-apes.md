@@ -24,7 +24,7 @@ Critics rightly singled out Andy Serkis's motion-capture performance as a monume
 - **Ethical Boundaries** — where do our responsibilities begin and end when experimenting with life?
 - **The Definition of "Personhood"** — what qualities truly grant an individual rights and autonomy?
 
-![Caesar in his childhood home, observing the human world with a thoughtful expression.](https://www.imdb.com/title/tt1318514/media/rm1036060160){: .rounded-10 w-75 .shadow}
+![Caesar in his childhood home, observing the human world with a thoughtful expression.](/assets/img/posts/tt1318514_1.webp){: .rounded-10 w-75 .shadow}
 _Caesar's early life, a delicate balance between domesticity and burgeoning intellect._
 
 ## Chains of Progress: Freedom, Oppression, and Rebellion
@@ -36,7 +36,7 @@ The film takes a darker turn when Caesar, in a moment of protective instinct for
 
 This section of the film, while stark and at times brutal, is vital for the philosophical arc. It lays bare the consequences of our capacity for subjugation and the dangers of viewing any sentient being as mere property. Critics and audiences alike, as seen in many IMDb user reviews, often highlighted the visceral impact of Caesar's struggle and his calculated rise to leadership. While some might argue the human antagonists here were a bit one-dimensional, their caricature-like cruelty serves to amplify Caesar's moral imperative. He doesn't just want revenge; he wants **justice** and **autonomy** for his kind. The pivotal moment when Caesar utters his first word, "No!", isn't just a cinematic triumph; it's a profound declaration of selfhood, a refusal to be defined or confined by human dominion. It's a primal scream against the chains of progress that disregard the inherent value of life.
 
-![Caesar leading a group of apes in an escape from the primate facility, a defiant look on his face.](https://www.imdb.com/title/tt1318514/media/rm1052837376){: .rounded-10 w-75 .shadow}
+![Caesar leading a group of apes in an escape from the primate facility, a defiant look on his face.](/assets/img/posts/tt1318514_2.webp){: .rounded-10 w-75 .shadow}
 _The moment of liberation: a collective awakening against injustice._
 
 ## A Mirror to Humanity: Our Own Primal Fears and Aspirations
@@ -45,7 +45,7 @@ Ultimately, *Rise of the Planet of the Apes* isn't just a thrilling sci-fi actio
 
 Despite its blockbuster trappings and the occasional plot convenience that some might point to, the film dares to delve into deeper **metaphysical questions**: What does it truly mean to be dominant? Is our intelligence a gift or a curse? Are we destined to repeat cycles of power and subjugation? The final scenes, with Caesar leading his community into the sanctuary of the redwood forest, are not triumphant in a simple sense, but laden with a sense of **melancholy inevitability**. We witness the birth of a new civilization, but one born from the ashes of human failure, suggesting a cyclical nature to existence and the perennial struggle for survival and self-determination. It forces us to look in the mirror and confront our own primal fears of losing control, of being replaced, and of the very creatures we deem "lesser" proving to be more, or at least, equal.
 
-![Caesar, sitting high in a tree, overlooking the Golden Gate Bridge, a thoughtful and solemn expression on his face.](https://www.imdb.com/title/tt1318514/media/rm1069614592){: .rounded-10 w-75 .shadow}
+![Caesar, sitting high in a tree, overlooking the Golden Gate Bridge, a thoughtful and solemn expression on his face.](/assets/img/posts/tt1318514_3.webp){: .rounded-10 w-75 .shadow}
 _A poignant moment of reflection, as Caesar gazes upon the world he is changing forever._
 
 ---
