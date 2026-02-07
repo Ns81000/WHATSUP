@@ -331,12 +331,12 @@ def save_to_history(imdb_id, title):
 def is_sunday_fifth_run():
     """
     Check if this is Sunday evening recap run.
-    Sunday runs at 03:00 (notification only) and 14:00 UTC (recap generation).
-    The 14:00 UTC run generates the weekly recap post.
+    Sunday recap runs at ~19:30 IST (14:00 UTC).
+    Uses local time consistently with history tracking.
     """
-    now = datetime.utcnow()
+    now = datetime.now()
     is_sunday = now.weekday() == 6  # 0=Monday, 6=Sunday
-    is_recap_run_time = 13 <= now.hour <= 15  # 14:00 UTC window (with delay buffer)
+    is_recap_run_time = 18 <= now.hour <= 21  # 19:30 IST window (with delay buffer)
     return is_sunday and is_recap_run_time
 
 
@@ -969,10 +969,10 @@ def delete_telegram_message(message_id):
 
 
 def send_telegram_message(message):
-    """Send a message via Telegram bot."""
+    """Send a message via Telegram bot. Returns message_id for later deletion, or None."""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         print("⚠️ Telegram not configured")
-        return False
+        return None
     
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
@@ -984,11 +984,12 @@ def send_telegram_message(message):
     try:
         response = requests.post(url, json=payload, timeout=30)
         response.raise_for_status()
+        msg_id = response.json().get('result', {}).get('message_id')
         print("📱 Telegram message sent")
-        return True
+        return msg_id
     except requests.RequestException as e:
         print(f"❌ Telegram error: {e}")
-        return False
+        return None
 
 
 def check_telegram_for_uploads(imdb_id):
@@ -1115,6 +1116,72 @@ _Reply with your photos. They will be processed automatically._
 
 
 # ==================== GEMINI CONTENT GENERATION ====================
+
+def generate_recap_image_prompt(week_posts):
+    """Use Gemini to generate an image generation prompt for the weekly recap hero image.
+    
+    Style: Painterly, non-photorealistic (NPR) 3D / 2.5D look that merges
+    3D character models with 2D-painted textures and environments.
+    """
+    if not GENAI_AVAILABLE or not GEMINI_API_KEY:
+        print("⚠️ Gemini not available for image prompt generation")
+        return None
+    
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    
+    posts_summary = ""
+    for idx, post in enumerate(week_posts, 1):
+        date_str = post['date'].strftime('%A, %B %d')
+        posts_summary += f"{idx}. {post['title']} ({date_str})\n"
+    
+    prompt = f"""You are an expert AI image prompt engineer.
+
+This week, a philosophical cinema blog called "What's Up?" published these analyses:
+
+{posts_summary}
+
+Your task: Create ONE detailed image generation prompt that visually represents the
+thematic essence of ALL these films/series combined into a single cohesive scene.
+
+MANDATORY ART STYLE (include this EXACTLY in your prompt):
+"A painterly, non-photorealistic (NPR) 3D look that merges 3D character models with
+2D-painted textures and environments, often termed 2.5D. Rich oil-painting brushstrokes
+visible in backgrounds, stylized character silhouettes with soft cel-shading, warm
+cinematic lighting with volumetric god-rays, muted color palette with selective vibrant
+accents."
+
+GUIDELINES:
+- DO NOT mention any specific copyrighted character names, actors, or movie titles
+- Instead, describe archetypal figures, moods, environments, and symbolic elements
+- Focus on the PHILOSOPHICAL THEMES connecting these works (freedom, identity, chaos, etc.)
+- Make it a wide landscape composition (16:9 aspect ratio) suitable for a blog hero image
+- Include specific visual details: lighting, composition, foreground/background elements
+- Keep the prompt under 200 words
+- The output should be ONLY the image prompt text, nothing else — no explanation, no preamble
+
+Generate the prompt now:
+"""
+    
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.9,
+                max_output_tokens=500,
+            )
+        )
+        
+        image_prompt = response.text.strip()
+        if image_prompt.startswith('```'):
+            image_prompt = re.sub(r'^```(?:markdown|md|text)?\s*\n', '', image_prompt)
+            image_prompt = re.sub(r'\n```\s*$', '', image_prompt)
+        
+        print(f"✅ Image prompt generated ({len(image_prompt)} chars)")
+        return image_prompt
+    except Exception as e:
+        print(f"❌ Image prompt generation error: {e}")
+        return None
 
 def generate_weekly_recap_post(week_posts, hero_image_path):
     """Generate a beautiful weekly journey recap post with Gemini AI."""
@@ -1835,6 +1902,20 @@ def process_sunday_special():
     for post in week_posts:
         print(f"   - {post['title']}")
     
+    # Step 1.5: Delete the Sunday morning notification message from Telegram
+    notif_file = DATA_DIR / 'sunday_notification_msg.json'
+    if notif_file.exists():
+        try:
+            with open(notif_file, 'r', encoding='utf-8') as f:
+                notif_data = json.load(f)
+            morning_msg_id = notif_data.get('message_id')
+            if morning_msg_id:
+                delete_telegram_message(morning_msg_id)
+                print("🗑️ Deleted Sunday morning notification from Telegram")
+            notif_file.unlink()  # Remove the tracking file
+        except Exception as e:
+            print(f"⚠️ Could not delete morning notification: {e}")
+    
     # Step 2: Send email summary to user
     print("\n📧 Sending weekly summary email...")
     send_weekly_email_summary(week_posts)
@@ -1885,27 +1966,9 @@ def process_sunday_special():
         except Exception as e:
             print(f"⚠️ Telegram check error: {e}")
     
-    # Step 4: If no manual upload, send notification for next time
+    # Step 4: If no manual upload, just log it — recap will publish without hero image
     if not telegram_images:
-        print("⚠️ No hero image found via Telegram")
-        print("   Sending notification for future Sunday specials...")
-        
-        telegram_msg = f"""
-🌟 **SUNDAY SPECIAL - Image Notification**
-
-This week's recap ({len(week_posts)} posts) was published without a custom hero image.
-
-📸 **For next week's recap**, upload a hero image with this caption:
-`{recap_token}`
-
-Requirements:
-- Landscape/widescreen image (1920px+ wide)
-- Should represent the week's philosophical journey
-- Upload anytime before next Sunday
-
-_The system will auto-detect and use it for the recap post._
-"""
-        send_telegram_message(telegram_msg)
+        print("⚠️ No hero image found via Telegram — recap will publish without hero image")
     
     # Step 5: Process hero image if available
     hero_image_relative = None
@@ -1935,14 +1998,17 @@ _The system will auto-detect and use it for the recap post._
     # Step 7: Save the blog post
     print("\n💾 Saving weekly recap post...")
     
-    # Generate filename
-    week_start = datetime.now() - timedelta(days=datetime.now().weekday())
-    date_str = week_start.strftime('%Y-%m-%d')
+    # Generate filename — use TODAY's date (Sunday) so the recap sorts
+    # AFTER all Mon-Sat posts it summarizes
+    date_str = datetime.now().strftime('%Y-%m-%d')
     clean_title = re.sub(r'[^\w\s-]', '', f"weekly-recap-week-{week_num}")
     clean_title = re.sub(r'[-\s]+', '-', clean_title).lower()
     
     post_filename = f"{date_str}-{clean_title}.md"
     post_path = POSTS_DIR / post_filename
+    
+    # Sanitize title in frontmatter (same as regular posts)
+    content = sanitize_title_in_content(content)
     
     with open(post_path, 'w', encoding='utf-8') as f:
         f.write(content)
@@ -2138,6 +2204,13 @@ def send_sunday_morning_notification():
     year = datetime.now().year
     recap_token = f"RECAP_W{week_num}_{year}"
     
+    # Generate image prompt via Gemini
+    print("\n🎨 Generating image prompt via Gemini...")
+    image_prompt = generate_recap_image_prompt(week_posts)
+    
+    if not image_prompt:
+        image_prompt = "(Could not generate prompt — Gemini unavailable. Use any philosophical/cinematic landscape image.)"
+    
     # Send email summary
     print("\n📧 Sending weekly summary email...")
     if SMTP_EMAIL and SMTP_PASSWORD and NOTIFICATION_EMAIL:
@@ -2157,6 +2230,10 @@ def send_sunday_morning_notification():
                 </li>
                 """
             
+            # Escape HTML in image prompt
+            import html as html_module
+            image_prompt_html = html_module.escape(image_prompt)
+            
             html = f"""
             <html>
             <head>
@@ -2167,6 +2244,8 @@ def send_sunday_morning_notification():
                     li {{ margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 3px solid #6366f1; }}
                     .highlight {{ background: #fef3c7; padding: 20px; border-left: 4px solid #f59e0b; margin: 20px 0; }}
                     .code {{ background: #1f2937; color: #10b981; padding: 5px 10px; border-radius: 4px; font-family: monospace; font-size: 16px; }}
+                    .prompt-box {{ background: #eef2ff; padding: 20px; border-left: 4px solid #6366f1; margin: 20px 0; border-radius: 8px; }}
+                    .prompt-text {{ font-family: 'Georgia', serif; font-size: 14px; line-height: 1.8; color: #1e293b; white-space: pre-wrap; }}
                     .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }}
                     .deadline {{ color: #dc2626; font-weight: bold; font-size: 18px; }}
                 </style>
@@ -2178,15 +2257,22 @@ def send_sunday_morning_notification():
                     {posts_html}
                 </ul>
                 
+                <div class="prompt-box">
+                    <h3>🎨 AI-Generated Image Prompt for This Week's Recap</h3>
+                    <p>Use this prompt in any image generator (Midjourney, DALL-E, Stable Diffusion, etc.) to create the hero image:</p>
+                    <div class="prompt-text">{image_prompt_html}</div>
+                    <p><small>Style: Painterly 2.5D — 3D models with 2D-painted textures</small></p>
+                </div>
+                
                 <div class="highlight">
                     <h3>📸 Upload Hero Image for Tonight's Recap!</h3>
                     <p><strong>Deadline:</strong> <span class="deadline">Before 7:30 PM IST today</span></p>
                     <p><strong>What to do:</strong></p>
                     <ol>
-                        <li>Find a beautiful philosophical/cinematic image</li>
-                        <li>Upload to Telegram bot</li>
-                        <li>Caption: <span class="code">{recap_token}</span></li>
-                        <li>Requirements: Landscape (1920px+ wide)</li>
+                        <li>Copy the image prompt above</li>
+                        <li>Paste into your preferred image generator</li>
+                        <li>Generate a landscape image (1920px+ wide)</li>
+                        <li>Upload to Telegram bot with caption: <span class="code">{recap_token}</span></li>
                     </ol>
                     <p><strong>Tonight at 7:30 PM IST:</strong></p>
                     <ul>
@@ -2216,34 +2302,40 @@ def send_sunday_morning_notification():
         except Exception as e:
             print(f"❌ Email error: {e}")
     
-    # Send Telegram notification
+    # Send Telegram notification with image prompt
     print("\n📱 Sending Telegram notification...")
     if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
-        telegram_msg = f"""
-🌅 **GOOD MORNING! Sunday Special Today**
+        telegram_msg = f"""🌅 *GOOD MORNING! Sunday Special Today*
 
-This week, we published **{len(week_posts)} philosophical analyses**.
+This week, we published *{len(week_posts)} philosophical analyses*.
 
-🌟 **Tonight's Weekly Recap**
+🌟 *Tonight's Weekly Recap*
 At 7:30 PM IST, the automation will:
 ✅ Check Telegram for your image
-✅ Generate beautiful weekly synthesis  
+✅ Generate beautiful weekly synthesis
 ✅ Publish the recap post
 
-📸 **Want to add a hero image?**
+🎨 *AI-Generated Image Prompt:*
+```
+{image_prompt}
+```
 
-Upload to Telegram **before 7:30 PM IST** with caption:
-`{recap_token}`
-
-Requirements:
-• Landscape/widescreen (1920px+ wide)
-• Represents the week's philosophical journey
-
-⏰ **Deadline: 7:30 PM IST today**
+📸 *Upload hero image before 7:30 PM IST*
+Caption: `{recap_token}`
+Requirements: Landscape (1920px+ wide)
 
 _Skip it? No problem! Recap will publish text-only._
 """
-        send_telegram_message(telegram_msg)
+        msg_id = send_telegram_message(telegram_msg)
+        if msg_id:
+            # Save notification message ID so Sunday evening can delete it
+            notif_file = DATA_DIR / 'sunday_notification_msg.json'
+            try:
+                with open(notif_file, 'w', encoding='utf-8') as f:
+                    json.dump({'message_id': msg_id, 'token': recap_token}, f)
+                print(f"   💾 Notification message ID saved for cleanup")
+            except Exception as e:
+                print(f"   ⚠️ Could not save notification msg ID: {e}")
     
     print("\n" + "="*60)
     print(f"✅ Sunday morning notification sent!")

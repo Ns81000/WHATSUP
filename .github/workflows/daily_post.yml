@@ -19,9 +19,9 @@ name: What's Up? Daily Post Automation
 on:
   schedule:
     # Daily runs (Mon-Sat: both run, Sunday: only morning notification)
-    - cron: '0 3 * * *'   # ~08:30 AM IST - Daily
-    - cron: '0 12 * * *'  # ~05:30 PM IST - Mon-Sat only
-    - cron: '0 14 * * 0'  # ~07:30 PM IST - Sunday only (Weekly Recap)
+    - cron: '0 3 * * *'     # ~08:30 AM IST - Daily (Sun: notification only)
+    - cron: '0 12 * * 1-6'  # ~05:30 PM IST - Mon-Sat only (skips Sunday)
+    - cron: '0 14 * * 0'    # ~07:30 PM IST - Sunday only (Weekly Recap)
   
   # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
