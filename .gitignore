@@ -37,6 +37,9 @@ venv/
 # Backup files
 *.backup.csv
 
+# Sunday state file (Phase 1→2 transition marker, must not be committed)
+data/sunday_notification_msg.json
+
 # OS
 .DS_Store
 Thumbs.db

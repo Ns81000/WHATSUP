@@ -358,18 +358,23 @@ def get_sunday_phase():
     Determine which phase of the Sunday mechanism we're in.
     
     The Sunday mechanism is two-phase:
-      Phase 1 (Morning): Send notification + image prompt to user.
-                         Creates state file: sunday_notification_msg.json
-      Phase 2 (Evening): Check Telegram for uploaded image, generate recap post.
-                         Deletes state file.
+      Phase 1 (Morning cron '0 3 * * *'): Send notification + image prompt.
+      Phase 2 (Evening cron '0 14 * * 0'): Generate weekly recap post.
     
-    Detection: If the state file exists → Phase 1 already ran → we're in Phase 2.
-               If no state file        → Phase 1 hasn't run  → we're in Phase 1.
+    Detection priority:
+      1. TRIGGER_SCHEDULE env var — '0 14 * * 0' = Phase 2, anything else = Phase 1
+      2. For manual/local runs: defaults to Phase 1 (send notification).
+         Set env SUNDAY_PHASE=2 to force Phase 2 manually.
     """
-    notif_file = DATA_DIR / 'sunday_notification_msg.json'
-    if notif_file.exists():
-        return 2  # Notification already sent, time to generate recap
-    return 1  # Notification not sent yet
+    trigger = os.getenv('TRIGGER_SCHEDULE', '').strip()
+    if trigger == '0 14 * * 0':
+        return 2
+    
+    override = os.getenv('SUNDAY_PHASE', '').strip()
+    if override == '2':
+        return 2
+    
+    return 1
 
 
 def select_items():
@@ -1129,59 +1134,62 @@ def generate_recap_image_prompt(week_posts):
     
     client = genai.Client(api_key=GEMINI_API_KEY)
     
-    posts_summary = ""
-    for idx, post in enumerate(week_posts, 1):
-        date_str = post['date'].strftime('%A, %B %d')
-        posts_summary += f"{idx}. {post['title']} ({date_str})\n"
+    # Build a compact summary — just titles, no dates (keeps input focused)
+    titles_list = ", ".join([p['title'] for p in week_posts])
     
     prompt = f"""You are an expert AI image prompt engineer.
 
-This week, a philosophical cinema blog called "What's Up?" published these analyses:
+A philosophical cinema blog published {len(week_posts)} analyses this week covering these titles:
+{titles_list}
 
-{posts_summary}
+Create ONE detailed image generation prompt (150-200 words) for a wide landscape hero image (16:9) that visually represents the thematic essence of ALL these works combined.
 
-Your task: Create ONE detailed image generation prompt that visually represents the
-thematic essence of ALL these films/series combined into a single cohesive scene.
+The prompt MUST begin with this exact art style description:
+"A painterly, non-photorealistic (NPR) 3D look that merges 3D character models with 2D-painted textures and environments, often termed 2.5D. Rich oil-painting brushstrokes visible in backgrounds, stylized character silhouettes with soft cel-shading, warm cinematic lighting with volumetric god-rays, muted color palette with selective vibrant accents."
 
-MANDATORY ART STYLE (include this EXACTLY in your prompt):
-"A painterly, non-photorealistic (NPR) 3D look that merges 3D character models with
-2D-painted textures and environments, often termed 2.5D. Rich oil-painting brushstrokes
-visible in backgrounds, stylized character silhouettes with soft cel-shading, warm
-cinematic lighting with volumetric god-rays, muted color palette with selective vibrant
-accents."
+Then CONTINUE with:
+- Archetypal figures, moods, symbolic elements (NO copyrighted character names, actors, or movie titles)
+- Philosophical themes connecting the works (freedom, identity, power, chaos, destiny, etc.)
+- Specific visual details: foreground subjects, background environment, lighting direction, color accents
+- Composition details: camera angle, depth of field, atmospheric effects
 
-GUIDELINES:
-- DO NOT mention any specific copyrighted character names, actors, or movie titles
-- Instead, describe archetypal figures, moods, environments, and symbolic elements
-- Focus on the PHILOSOPHICAL THEMES connecting these works (freedom, identity, chaos, etc.)
-- Make it a wide landscape composition (16:9 aspect ratio) suitable for a blog hero image
-- Include specific visual details: lighting, composition, foreground/background elements
-- Keep the prompt under 200 words
-- The output should be ONLY the image prompt text, nothing else — no explanation, no preamble
-
-Generate the prompt now:
+Output ONLY the complete image prompt text. No explanations, no preamble, no labels.
 """
     
-    try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.9,
-                max_output_tokens=500,
+    # Retry up to 3 times — validate output is substantial (>100 chars)
+    min_acceptable_length = 100
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.85 + (attempt * 0.05),
+                    max_output_tokens=1024,
+                )
             )
-        )
-        
-        image_prompt = response.text.strip()
-        if image_prompt.startswith('```'):
-            image_prompt = re.sub(r'^```(?:markdown|md|text)?\s*\n', '', image_prompt)
-            image_prompt = re.sub(r'\n```\s*$', '', image_prompt)
-        
-        print(f"✅ Image prompt generated ({len(image_prompt)} chars)")
-        return image_prompt
-    except Exception as e:
-        print(f"❌ Image prompt generation error: {e}")
-        return None
+            
+            image_prompt = response.text.strip()
+            if image_prompt.startswith('```'):
+                image_prompt = re.sub(r'^```(?:markdown|md|text)?\s*\n', '', image_prompt)
+                image_prompt = re.sub(r'\n```\s*$', '', image_prompt)
+            
+            if len(image_prompt) >= min_acceptable_length:
+                print(f"✅ Image prompt generated ({len(image_prompt)} chars)")
+                return image_prompt
+            else:
+                print(f"⚠️ Attempt {attempt + 1}: Image prompt too short ({len(image_prompt)} chars), retrying...")
+                if attempt < max_retries - 1:
+                    time.sleep(5)
+        except Exception as e:
+            print(f"❌ Attempt {attempt + 1}: Image prompt generation error: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(5)
+    
+    print("❌ All retries exhausted for image prompt generation")
+    return None
 
 def generate_weekly_recap_post(week_posts, hero_image_path):
     """Generate a beautiful weekly journey recap post with Gemini AI."""
@@ -1390,7 +1398,7 @@ What patterns do you notice emerging in your own life's narrative? How do these 
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model='gemini-2.0-flash-exp',
+                model='gemini-2.5-flash',
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.8,
@@ -1400,6 +1408,13 @@ What patterns do you notice emerging in your own life's narrative? How do these 
             )
             
             content = response.text
+            
+            if not content or len(content) < 500:
+                print(f"⚠️ Attempt {attempt + 1}: Recap content too short ({len(content) if content else 0} chars), retrying...")
+                if attempt < max_retries - 1:
+                    time.sleep(10)
+                    continue
+            
             print(f"✅ Weekly recap content generated ({len(content)} chars)")
             return content
             
@@ -1409,9 +1424,9 @@ What patterns do you notice emerging in your own life's narrative? How do these 
                 wait_time = (attempt + 1) * 10
                 print(f"⏳ Waiting {wait_time} seconds before retry...")
                 time.sleep(wait_time)
-            else:
-                print(f"❌ All retries exhausted for weekly recap generation")
-                return None
+    
+    print(f"❌ All retries exhausted for weekly recap generation")
+    return None
 
 
 def generate_blog_post(imdb_data, tmdb_data, media_type, has_images=True, image_count=4):
@@ -2364,12 +2379,10 @@ def main():
     
     # ==================== SUNDAY AUTO-DETECTION ====================
     # The script automatically detects Sunday and determines the phase:
-    #   Phase 1: Send notification + image prompt (morning)
-    #   Phase 2: Check Telegram for image + generate recap (evening)
-    # Phase detection uses a state file (sunday_notification_msg.json)
-    #   - File absent  → Phase 1 (send notification)
-    #   - File present → Phase 2 (generate recap)
-    # This works identically for scheduled AND manual triggers.
+    #   Phase 1: Send notification + image prompt (morning cron: 0 3 * * *)
+    #   Phase 2: Check Telegram for image + generate recap (evening cron: 0 14 * * 0)
+    # Phase detection uses the TRIGGER_SCHEDULE env var (cron expression).
+    # For manual triggers: defaults to Phase 1. Set SUNDAY_PHASE=2 for Phase 2.
     # ==============================================================
     
     if is_sunday():
