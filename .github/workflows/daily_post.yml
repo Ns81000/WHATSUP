@@ -31,11 +31,6 @@ on:
         required: false
         default: 'false'
         type: boolean
-      notification_only:
-        description: 'Send Sunday notification only (no post generation)'
-        required: false
-        default: 'false'
-        type: boolean
 
 # Prevent concurrent runs
 concurrency:
@@ -147,35 +142,12 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
           
-          # Sunday notification flag
-          SUNDAY_NOTIFICATION_ONLY: ${{ github.event.inputs.notification_only || 'false' }}
-          
           # Pass the cron expression that triggered this run (empty for workflow_dispatch)
+          # The Python script uses this to reliably detect Sunday cron triggers
           TRIGGER_SCHEDULE: ${{ github.event.schedule }}
         run: |
           cd scripts
-          
-          # Determine run mode from the cron expression that triggered the workflow.
-          # github.event.schedule is the EXACT cron string, immune to delays/queue time.
-          # - '0 3 * * *'   on Sunday → notification only (morning)
-          # - '0 14 * * 0'            → Sunday recap (evening)
-          # - anything else            → normal post generation
-          SCHEDULE="$TRIGGER_SCHEDULE"
-          DAY_OF_WEEK=$(date -u +%u)  # 7 = Sunday
-          
-          if [ "${{ github.event.inputs.notification_only }}" = "true" ]; then
-            echo "🌟 Manual trigger: notification-only mode"
-            python main.py --sunday-notification
-          elif [ "$SCHEDULE" = "0 14 * * 0" ]; then
-            echo "🌟 Sunday evening cron - Generating weekly recap"
-            python main.py --sunday-recap
-          elif [ "$SCHEDULE" = "0 3 * * *" ] && [ "$DAY_OF_WEEK" = "7" ]; then
-            echo "🌟 Sunday morning cron - Sending notification only"
-            python main.py --sunday-notification
-          else
-            echo "📝 Normal post generation run"
-            python main.py
-          fi
+          python main.py
       
       # ============================================================
       # STEP 7: Commit and Push Changes

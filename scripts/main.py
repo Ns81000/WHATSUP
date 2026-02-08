@@ -328,23 +328,48 @@ def save_to_history(imdb_id, title):
     print(f"📝 Added to history: {imdb_id}")
 
 
-def is_sunday_fifth_run():
+def is_sunday():
     """
-    Check if this is Sunday evening recap run.
+    Reliably detect if this run should follow Sunday behavior.
     
-    Detection priority:
-    1. Explicit --sunday-recap CLI flag (set by workflow via github.event.schedule)
-    2. Fallback: local time check for manual/local runs
+    Detection methods (in priority order):
+    1. TRIGGER_SCHEDULE env var (set by GitHub Actions from github.event.schedule)
+       - '0 3 * * *' on a Sunday  → Sunday
+       - '0 14 * * 0'             → Sunday  
+       - '0 12 * * 1-6'           → NOT Sunday (Mon-Sat only cron)
+    2. Day of week check (for manual triggers / local runs)
     """
-    # CLI flag is the authoritative source (immune to time-zone / delay issues)
-    if os.getenv('WHATSUP_RUN_MODE') == 'sunday-recap':
+    trigger = os.getenv('TRIGGER_SCHEDULE', '').strip()
+    
+    # Cron-based detection (authoritative on CI)
+    if trigger == '0 14 * * 0':
         return True
+    if trigger == '0 12 * * 1-6':
+        return False
+    # '0 3 * * *' fires every day — fall through to day-of-week check
     
-    # Fallback for manual / local runs
+    # Day-of-week detection (works for manual triggers & local runs)
     now = datetime.now()
-    is_sunday = now.weekday() == 6  # 0=Monday, 6=Sunday
-    is_recap_run_time = 18 <= now.hour <= 21  # 19:30 IST window (with delay buffer)
-    return is_sunday and is_recap_run_time
+    return now.weekday() == 6  # 0=Monday, 6=Sunday
+
+
+def get_sunday_phase():
+    """
+    Determine which phase of the Sunday mechanism we're in.
+    
+    The Sunday mechanism is two-phase:
+      Phase 1 (Morning): Send notification + image prompt to user.
+                         Creates state file: sunday_notification_msg.json
+      Phase 2 (Evening): Check Telegram for uploaded image, generate recap post.
+                         Deletes state file.
+    
+    Detection: If the state file exists → Phase 1 already ran → we're in Phase 2.
+               If no state file        → Phase 1 hasn't run  → we're in Phase 1.
+    """
+    notif_file = DATA_DIR / 'sunday_notification_msg.json'
+    if notif_file.exists():
+        return 2  # Notification already sent, time to generate recap
+    return 1  # Notification not sent yet
 
 
 def select_items():
@@ -357,15 +382,10 @@ def select_items():
     - If not: Randomly select 2 movies + 2 series, process 2, queue 2
     
     Normal runs: 1 movie + 1 series = 2 posts
-    Sunday 5th run: Only 1 item (alternating movie/series weekly)
+    (Sunday is handled separately in main() and never reaches here)
     """
     history = load_history()
     print(f"📊 Already processed: {len(history)} items")
-    
-    # Check if this is Sunday's 5th post (single item only)
-    fifth_run = is_sunday_fifth_run()
-    if fifth_run:
-        print("🌟 SUNDAY SPECIAL: 5th post run (single item)")
     
     # Load CSVs
     movies_df = pd.read_csv(MOVIES_CSV)
@@ -441,67 +461,40 @@ def select_items():
         print("\n⚠️ SERIES CSV DEPLETED - Switching to double movie mode!")
         print("   Will process 2 movies instead of 1 movie + 1 series")
     
-    # For Sunday's 5th run, only pick 1 item (alternate weekly) - RANDOMLY
-    if fifth_run:
-        week_number = datetime.utcnow().isocalendar()[1]
-        pick_movie = (week_number % 2 == 0)  # Even weeks: movie, Odd weeks: series
-        
-        if pick_movie and not available_movies.empty:
-            random_idx = random.randint(0, len(available_movies) - 1)
-            movie = available_movies.iloc[random_idx].to_dict()
-            remaining = available_movies.drop(available_movies.index[random_idx])
-            if not remaining.empty:
-                next_movie = remaining.iloc[random.randint(0, len(remaining) - 1)].to_dict()
-            print(f"🎬 Sunday Special (Movie - Random): {movie['Title']} ({movie['Year']})")
-        elif not available_series.empty:
-            random_idx = random.randint(0, len(available_series) - 1)
-            series = available_series.iloc[random_idx].to_dict()
-            remaining = available_series.drop(available_series.index[random_idx])
-            if not remaining.empty:
-                next_series = remaining.iloc[random.randint(0, len(remaining) - 1)].to_dict()
-            print(f"📺 Sunday Special (Series - Random): {series['Title']} ({series['Year']})")
-        elif not available_movies.empty:
-            random_idx = random.randint(0, len(available_movies) - 1)
-            movie = available_movies.iloc[random_idx].to_dict()
-            remaining = available_movies.drop(available_movies.index[random_idx])
-            if not remaining.empty:
-                next_movie = remaining.iloc[random.randint(0, len(remaining) - 1)].to_dict()
-            print(f"🎬 Sunday Special (Movie fallback - Random): {movie['Title']} ({movie['Year']})")
+    # Normal run: pick both movie and series RANDOMLY
+    # BUT if series is depleted, pick 2 movies instead
+    if available_movies.empty:
+        print("⚠️ No more movies to process!")
     else:
-        # Normal run: pick both movie and series RANDOMLY
-        # BUT if series is depleted, pick 2 movies instead
-        if available_movies.empty:
-            print("⚠️ No more movies to process!")
-        else:
-            # Random selection instead of sequential
-            random_idx = random.randint(0, len(available_movies) - 1)
-            movie = available_movies.iloc[random_idx].to_dict()
-            # Get next movie (different from selected one)
-            remaining_movies = available_movies.drop(available_movies.index[random_idx])
-            if not remaining_movies.empty:
+        # Random selection instead of sequential
+        random_idx = random.randint(0, len(available_movies) - 1)
+        movie = available_movies.iloc[random_idx].to_dict()
+        # Get next movie (different from selected one)
+        remaining_movies = available_movies.drop(available_movies.index[random_idx])
+        if not remaining_movies.empty:
+            next_movie = remaining_movies.iloc[random.randint(0, len(remaining_movies) - 1)].to_dict()
+        print(f"🎬 Selected movie (random): {movie['Title']} ({movie['Year']})")
+    
+    if available_series.empty:
+        print("⚠️ No more series to process - selecting 2nd movie instead!")
+        # Select a second movie instead of series
+        if not remaining_movies.empty:
+            random_idx = random.randint(0, len(remaining_movies) - 1)
+            series = remaining_movies.iloc[random_idx].to_dict()  # Using 'series' variable for 2nd movie
+            print(f"🎬 Selected movie #2 (random): {series['Title']} ({series['Year']})")
+            # Update remaining for next selection
+            remaining_movies = remaining_movies.drop(remaining_movies.index[random_idx])
+            if not remaining_movies.empty and not next_movie:
                 next_movie = remaining_movies.iloc[random.randint(0, len(remaining_movies) - 1)].to_dict()
-            print(f"🎬 Selected movie (random): {movie['Title']} ({movie['Year']})")
-        
-        if available_series.empty:
-            print("⚠️ No more series to process - selecting 2nd movie instead!")
-            # Select a second movie instead of series
-            if not remaining_movies.empty:
-                random_idx = random.randint(0, len(remaining_movies) - 1)
-                series = remaining_movies.iloc[random_idx].to_dict()  # Using 'series' variable for 2nd movie
-                print(f"🎬 Selected movie #2 (random): {series['Title']} ({series['Year']})")
-                # Update remaining for next selection
-                remaining_movies = remaining_movies.drop(remaining_movies.index[random_idx])
-                if not remaining_movies.empty and not next_movie:
-                    next_movie = remaining_movies.iloc[random.randint(0, len(remaining_movies) - 1)].to_dict()
-        else:
-            # Random selection instead of sequential
-            random_idx = random.randint(0, len(available_series) - 1)
-            series = available_series.iloc[random_idx].to_dict()
-            # Get next series (different from selected one)
-            remaining_series = available_series.drop(available_series.index[random_idx])
-            if not remaining_series.empty:
-                next_series = remaining_series.iloc[random.randint(0, len(remaining_series) - 1)].to_dict()
-            print(f"📺 Selected series (random): {series['Title']} ({series['Year']})")
+    else:
+        # Random selection instead of sequential
+        random_idx = random.randint(0, len(available_series) - 1)
+        series = available_series.iloc[random_idx].to_dict()
+        # Get next series (different from selected one)
+        remaining_series = available_series.drop(available_series.index[random_idx])
+        if not remaining_series.empty:
+            next_series = remaining_series.iloc[random.randint(0, len(remaining_series) - 1)].to_dict()
+        print(f"📺 Selected series (random): {series['Title']} ({series['Year']})")
     
     return movie, series, next_movie, next_series
 
@@ -2360,28 +2353,56 @@ def main():
     
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='What\'s Up? Blog Automation')
-    parser.add_argument('--sunday-notification', action='store_true',
-                       help='Send Sunday morning notification only (no post generation)')
-    parser.add_argument('--sunday-recap', action='store_true',
-                       help='Generate Sunday weekly recap post (evening run)')
+    parser.add_argument('--skip-delay', action='store_true',
+                       help='Skip random delay (for testing)')
     args = parser.parse_args()
-    
-    # Expose run mode via env var so helper functions can detect it
-    # without relying on fragile local-time checks (critical on CI runners)
-    if args.sunday_recap:
-        os.environ['WHATSUP_RUN_MODE'] = 'sunday-recap'
-    elif args.sunday_notification:
-        os.environ['WHATSUP_RUN_MODE'] = 'sunday-notification'
     
     print("\n" + "="*60)
     print("🎬 What's Up? - Autonomous Philosophical Media Engine")
     print("="*60)
     print(f"⏰ Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
-    # Check if this is Sunday morning notification-only mode
-    if args.sunday_notification:
-        send_sunday_morning_notification()
-        return
+    # ==================== SUNDAY AUTO-DETECTION ====================
+    # The script automatically detects Sunday and determines the phase:
+    #   Phase 1: Send notification + image prompt (morning)
+    #   Phase 2: Check Telegram for image + generate recap (evening)
+    # Phase detection uses a state file (sunday_notification_msg.json)
+    #   - File absent  → Phase 1 (send notification)
+    #   - File present → Phase 2 (generate recap)
+    # This works identically for scheduled AND manual triggers.
+    # ==============================================================
+    
+    if is_sunday():
+        phase = get_sunday_phase()
+        print(f"\n🌟 SUNDAY DETECTED — Phase {phase}")
+        
+        if phase == 1:
+            # Phase 1: Send notification + image prompt
+            print("🌅 Sunday Phase 1: Sending notification & image prompt")
+            print("   User can generate and upload hero image to Telegram")
+            print("   Phase 2 (recap generation) will run on the next trigger")
+            send_sunday_morning_notification()
+            return
+        else:
+            # Phase 2: Generate weekly recap post
+            print("🌙 Sunday Phase 2: Generating weekly recap post")
+            print("   Checking Telegram for uploaded hero image...")
+            
+            # Validate environment first
+            print("\n📋 Validating environment...")
+            validate_environment()
+            validate_csv_files()
+            
+            print("\n📦 Creating CSV backups...")
+            backup_csv_files()
+            
+            if process_sunday_special():
+                print("\n✅ Sunday special completed successfully!")
+            else:
+                print("\n⚠️ Sunday special failed or timed out")
+            return
+    
+    # ==================== NORMAL WEEKDAY PROCESSING ====================
     
     # Validate environment
     print("\n📋 Validating environment...")
@@ -2392,19 +2413,6 @@ def main():
     print("\n📦 Creating CSV backups...")
     backup_csv_files()
     
-    # Check if this is Sunday special run
-    fifth_run = is_sunday_fifth_run()
-    
-    if fifth_run:
-        # Process Sunday special weekly recap
-        print("\n🌟 This is the Sunday Special run - creating weekly recap!")
-        if process_sunday_special():
-            print("\n✅ Sunday special completed successfully!")
-        else:
-            print("\n⚠️ Sunday special failed or timed out")
-        return
-    
-    # Normal processing for regular runs
     # Select items to process
     print("\n📋 Selecting items to process...")
     
