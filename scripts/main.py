@@ -370,9 +370,13 @@ def get_sunday_phase():
     if trigger == '0 14 * * 0':
         return 2
     
+    # Manual override via workflow_dispatch dropdown or env var
+    # 'auto' means no override — fall through to default
     override = os.getenv('SUNDAY_PHASE', '').strip()
     if override == '2':
         return 2
+    if override == '1':
+        return 1
     
     return 1
 
@@ -1941,9 +1945,8 @@ def process_sunday_special():
         except Exception as e:
             print(f"⚠️ Could not delete morning notification: {e}")
     
-    # Step 2: Send email summary to user
-    print("\n📧 Sending weekly summary email...")
-    send_weekly_email_summary(week_posts)
+    # Step 2: Email summary was already sent in Phase 1 (morning notification)
+    # No need to send again — avoids duplicate email
     
     # Step 3: Check Telegram for manually uploaded hero image
     week_num = datetime.now().isocalendar()[1]
@@ -1957,18 +1960,30 @@ def process_sunday_special():
     if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
         try:
-            response = requests.get(url, timeout=30)
+            # Use limit=100 to ensure we scan enough updates
+            response = requests.get(url, params={'limit': 100}, timeout=30)
             updates = response.json().get('result', [])
+            print(f"   📬 Scanning {len(updates)} Telegram updates for token: {recap_token}")
             
             for update in updates:
                 message = update.get('message', {})
-                caption = message.get('caption', '')
+                caption = (message.get('caption') or '').strip()
                 
-                if recap_token in caption.upper():
+                if recap_token.upper() in caption.upper():
+                    # Try photo first (compressed upload), then document (file upload)
+                    file_id = None
                     photos = message.get('photo', [])
                     if photos:
-                        file_id = photos[-1]['file_id']
-                        
+                        file_id = photos[-1]['file_id']  # Highest resolution
+                        print(f"   📷 Found image as photo upload")
+                    elif message.get('document'):
+                        doc = message['document']
+                        mime = doc.get('mime_type', '')
+                        if mime.startswith('image/'):
+                            file_id = doc['file_id']
+                            print(f"   📎 Found image as document upload ({mime})")
+                    
+                    if file_id:
                         # Get file and download
                         file_info_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile"
                         file_info = requests.get(file_info_url, params={'file_id': file_id}, timeout=10).json()
@@ -1981,12 +1996,9 @@ def process_sunday_special():
                                 telegram_images['hero'] = image_data
                                 print(f"✅ Found manually uploaded hero image!")
                                 
-                                # Delete the message
-                                delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage"
-                                requests.post(delete_url, json={
-                                    'chat_id': TELEGRAM_CHAT_ID,
-                                    'message_id': message['message_id']
-                                }, timeout=10)
+                                # Delete the uploaded image message from Telegram
+                                print("🗑️ Deleting uploaded image from Telegram...")
+                                delete_telegram_message(message['message_id'])
                                 break
         except Exception as e:
             print(f"⚠️ Telegram check error: {e}")
@@ -2212,6 +2224,23 @@ def send_sunday_morning_notification():
     print(f"🌅 SUNDAY MORNING - WEEKLY RECAP NOTIFICATION")
     print(f"{'='*60}")
     
+    # Guard: skip if notification was already sent today
+    # (prevents duplicates when both workflow_dispatch and 0 3 * * * cron fire)
+    notif_file = DATA_DIR / 'sunday_notification_msg.json'
+    if notif_file.exists():
+        try:
+            with open(notif_file, 'r', encoding='utf-8') as f:
+                notif_data = json.load(f)
+            saved_token = notif_data.get('token', '')
+            week_num = datetime.now().isocalendar()[1]
+            year = datetime.now().year
+            expected_token = f"RECAP_W{week_num}_{year}"
+            if saved_token == expected_token:
+                print("⏭️ Sunday morning notification already sent today — skipping duplicate")
+                return True
+        except Exception:
+            pass  # If file is corrupt, proceed with sending
+    
     # Get this week's posts from history
     week_posts = get_week_posts_from_history()
     
@@ -2404,6 +2433,11 @@ def main():
             print("🌅 Sunday Phase 1: Sending notification & image prompt")
             print("   User can generate and upload hero image to Telegram")
             print("   Phase 2 (recap generation) will run on the next trigger")
+            
+            # Validate environment (Phase 1 uses Gemini for image prompt)
+            print("\n📋 Validating environment...")
+            validate_environment()
+            
             send_sunday_morning_notification()
             return
         else:
