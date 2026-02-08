@@ -192,6 +192,10 @@ def get_week_posts_from_history():
             imdb_id = parts[0].strip()
             rest = parts[1].strip()
             
+            # Skip recap entries — only include real movie/series posts
+            if imdb_id.startswith('recap_'):
+                continue
+            
             # Extract title and date
             if ' - ' in rest:
                 title_part, date_part = rest.rsplit(' - ', 1)
@@ -472,6 +476,8 @@ def select_items():
     
     # Normal run: pick both movie and series RANDOMLY
     # BUT if series is depleted, pick 2 movies instead
+    remaining_movies = pd.DataFrame()  # Initialize to prevent NameError
+    
     if available_movies.empty:
         print("⚠️ No more movies to process!")
     else:
@@ -1019,14 +1025,22 @@ def check_telegram_for_uploads(imdb_id):
     
     for update in updates:
         message = update.get('message', {})
-        caption = message.get('caption', '')
+        caption = (message.get('caption') or '').strip()
         
         # Check if caption contains our token
         if f"_{imdb_id}" in caption:
+            # Try photo first (compressed upload), then document (file upload)
+            file_id = None
             photos = message.get('photo', [])
             if photos:
                 file_id = photos[-1]['file_id']  # Highest resolution
-                
+            elif message.get('document'):
+                doc = message['document']
+                mime = doc.get('mime_type', '')
+                if mime.startswith('image/'):
+                    file_id = doc['file_id']
+            
+            if file_id:
                 # Get file path
                 file_info_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile"
                 file_info = requests.get(file_info_url, params={'file_id': file_id}).json()
@@ -1734,7 +1748,6 @@ Key themes to explore:
             if any(code in error_msg for code in ['503', '429', 'overloaded', 'UNAVAILABLE', 'quota']):
                 if attempt < max_retries - 1:
                     print(f"   ⏳ Waiting {retry_delay}s before retry...")
-                    import time
                     time.sleep(retry_delay)
                     retry_delay *= 2  # Exponential backoff
                     continue
@@ -2018,7 +2031,7 @@ def process_sunday_special():
         
         print(f"📸 Processing hero image...")
         if process_and_save_image(telegram_images['hero'], hero_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
-            hero_image_relative = str(hero_path.relative_to(ROOT_DIR))
+            hero_image_relative = str(hero_path.relative_to(ROOT_DIR)).replace('\\', '/')
             print(f"✅ Hero image saved: {hero_filename}")
         else:
             print("⚠️ Failed to process hero image - continuing without it")
@@ -2177,7 +2190,10 @@ def process_item(item_data, media_type_label):
     update_metadata(imdb_id, title, moods, post_url)
     
     # Step 7: Remove from CSV to prevent re-selection
-    remove_from_csv(imdb_id, media_type)
+    # Use TMDB-detected media_type (not the caller's label) since the "series"
+    # slot may hold a movie when series CSV is depleted
+    csv_type = media_type  # 'movie' or 'tv' (from TMDB detection or initial guess)
+    remove_from_csv(imdb_id, csv_type)
     
     return True
 
@@ -2448,10 +2464,6 @@ def main():
             # Validate environment first
             print("\n📋 Validating environment...")
             validate_environment()
-            validate_csv_files()
-            
-            print("\n📦 Creating CSV backups...")
-            backup_csv_files()
             
             if process_sunday_special():
                 print("\n✅ Sunday special completed successfully!")
