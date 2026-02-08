@@ -1125,8 +1125,8 @@ _Reply with your photos. They will be processed automatically._
 def generate_recap_image_prompt(week_posts):
     """Use Gemini to generate an image generation prompt for the weekly recap hero image.
     
-    Style: Painterly, non-photorealistic (NPR) 3D / 2.5D look that merges
-    3D character models with 2D-painted textures and environments.
+    The style prefix is hardcoded so Gemini only generates the creative scene
+    description — prevents truncation where it outputs just the style line.
     """
     if not GENAI_AVAILABLE or not GEMINI_API_KEY:
         print("⚠️ Gemini not available for image prompt generation")
@@ -1134,30 +1134,37 @@ def generate_recap_image_prompt(week_posts):
     
     client = genai.Client(api_key=GEMINI_API_KEY)
     
-    # Build a compact summary — just titles, no dates (keeps input focused)
+    STYLE_PREFIX = (
+        "A painterly, non-photorealistic (NPR) 3D look that merges 3D character "
+        "models with 2D-painted textures and environments, often termed 2.5D. "
+        "Rich oil-painting brushstrokes visible in backgrounds, stylized character "
+        "silhouettes with soft cel-shading, warm cinematic lighting with volumetric "
+        "god-rays, muted color palette with selective vibrant accents."
+    )
+    
     titles_list = ", ".join([p['title'] for p in week_posts])
     
-    prompt = f"""You are an expert AI image prompt engineer.
+    prompt = f"""You are an expert AI image prompt engineer specializing in cinematic key art.
 
-A philosophical cinema blog published {len(week_posts)} analyses this week covering these titles:
+A philosophical cinema blog published {len(week_posts)} analyses this week:
 {titles_list}
 
-Create ONE detailed image generation prompt (150-200 words) for a wide landscape hero image (16:9) that visually represents the thematic essence of ALL these works combined.
+Your task: Write a VIVID SCENE DESCRIPTION (150-250 words) for a wide 16:9 landscape hero image that visually captures the combined thematic essence of ALL these works.
 
-The prompt MUST begin with this exact art style description:
-"A painterly, non-photorealistic (NPR) 3D look that merges 3D character models with 2D-painted textures and environments, often termed 2.5D. Rich oil-painting brushstrokes visible in backgrounds, stylized character silhouettes with soft cel-shading, warm cinematic lighting with volumetric god-rays, muted color palette with selective vibrant accents."
+IMPORTANT — Do NOT include any art style instructions (I will prepend those myself). Jump straight into describing the scene.
 
-Then CONTINUE with:
-- Archetypal figures, moods, symbolic elements (NO copyrighted character names, actors, or movie titles)
-- Philosophical themes connecting the works (freedom, identity, power, chaos, destiny, etc.)
-- Specific visual details: foreground subjects, background environment, lighting direction, color accents
-- Composition details: camera angle, depth of field, atmospheric effects
+Your scene description MUST include ALL of the following:
+1. FOREGROUND: 2-4 archetypal human silhouettes/figures in dramatic poses that embody the themes (warrior, seeker, ruler, rebel, etc.) — NO copyrighted character names or actor likenesses
+2. ENVIRONMENT: A richly detailed background landscape that metaphorically represents the shared themes (e.g., crumbling citadel, cosmic battlefield, twilight forest, fractured mirror-world)
+3. SYMBOLIC ELEMENTS: 3-5 specific symbolic objects or motifs woven into the scene (e.g., shattered crown, burning map, spiraling staircase, caged bird, eclipsed sun)
+4. LIGHTING: Specific direction, color temperature, and mood (e.g., "golden hour light from the left casting long violet shadows")
+5. COLOR PALETTE: Name 4-6 specific colors that dominate the image
+6. MOOD/ATMOSPHERE: Emotional tone — epic, melancholic, defiant, mysterious, etc.
+7. COMPOSITION: Camera angle, depth layers, any atmospheric effects (fog, sparks, rain, dust motes)
 
-Output ONLY the complete image prompt text. No explanations, no preamble, no labels.
-"""
+Write in a dense, descriptive, comma-separated prompt style. No bullet points, no labels, no explanations — just one continuous vivid scene description paragraph."""
     
-    # Retry up to 3 times — validate output is substantial (>100 chars)
-    min_acceptable_length = 100
+    min_scene_length = 200
     max_retries = 3
     
     for attempt in range(max_retries):
@@ -1167,20 +1174,23 @@ Output ONLY the complete image prompt text. No explanations, no preamble, no lab
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.85 + (attempt * 0.05),
-                    max_output_tokens=1024,
+                    max_output_tokens=1500,
                 )
             )
             
-            image_prompt = response.text.strip()
-            if image_prompt.startswith('```'):
-                image_prompt = re.sub(r'^```(?:markdown|md|text)?\s*\n', '', image_prompt)
-                image_prompt = re.sub(r'\n```\s*$', '', image_prompt)
+            scene = response.text.strip()
+            if scene.startswith('```'):
+                scene = re.sub(r'^```(?:markdown|md|text)?\s*\n', '', scene)
+                scene = re.sub(r'\n```\s*$', '', scene)
+            scene = re.sub(r'^(Scene Description|Prompt|Image Prompt|Here is)[:\s]*', '', scene, flags=re.IGNORECASE).strip()
+            scene = scene.strip('"').strip()
             
-            if len(image_prompt) >= min_acceptable_length:
-                print(f"✅ Image prompt generated ({len(image_prompt)} chars)")
-                return image_prompt
+            if len(scene) >= min_scene_length:
+                full_prompt = f"{STYLE_PREFIX} {scene}"
+                print(f"✅ Image prompt generated ({len(full_prompt)} chars, scene: {len(scene)} chars)")
+                return full_prompt
             else:
-                print(f"⚠️ Attempt {attempt + 1}: Image prompt too short ({len(image_prompt)} chars), retrying...")
+                print(f"⚠️ Attempt {attempt + 1}: Scene too short ({len(scene)} chars), retrying...")
                 if attempt < max_retries - 1:
                     time.sleep(5)
         except Exception as e:
