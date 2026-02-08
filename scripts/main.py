@@ -331,9 +331,16 @@ def save_to_history(imdb_id, title):
 def is_sunday_fifth_run():
     """
     Check if this is Sunday evening recap run.
-    Sunday recap runs at ~19:30 IST (14:00 UTC).
-    Uses local time consistently with history tracking.
+    
+    Detection priority:
+    1. Explicit --sunday-recap CLI flag (set by workflow via github.event.schedule)
+    2. Fallback: local time check for manual/local runs
     """
+    # CLI flag is the authoritative source (immune to time-zone / delay issues)
+    if os.getenv('WHATSUP_RUN_MODE') == 'sunday-recap':
+        return True
+    
+    # Fallback for manual / local runs
     now = datetime.now()
     is_sunday = now.weekday() == 6  # 0=Monday, 6=Sunday
     is_recap_run_time = 18 <= now.hour <= 21  # 19:30 IST window (with delay buffer)
@@ -2355,7 +2362,16 @@ def main():
     parser = argparse.ArgumentParser(description='What\'s Up? Blog Automation')
     parser.add_argument('--sunday-notification', action='store_true',
                        help='Send Sunday morning notification only (no post generation)')
+    parser.add_argument('--sunday-recap', action='store_true',
+                       help='Generate Sunday weekly recap post (evening run)')
     args = parser.parse_args()
+    
+    # Expose run mode via env var so helper functions can detect it
+    # without relying on fragile local-time checks (critical on CI runners)
+    if args.sunday_recap:
+        os.environ['WHATSUP_RUN_MODE'] = 'sunday-recap'
+    elif args.sunday_notification:
+        os.environ['WHATSUP_RUN_MODE'] = 'sunday-notification'
     
     print("\n" + "="*60)
     print("🎬 What's Up? - Autonomous Philosophical Media Engine")
