@@ -11,7 +11,7 @@ description: "A profound journey through 38 cinematic worlds, exploring the intr
 ---
 
 > "Man is condemned to be free; because once thrown into the world, he is responsible for everything he does." — Jean-Paul Sartre
-{{: .prompt-tip }}
+{: .prompt-tip }
 
 This week, "What's Up?" plunged into the very crucible of existence, navigating a staggering **38 philosophical analyses** that collectively illuminate the intricate architecture of being. Across a vast tapestry of genres and narratives, from sweeping cosmic sagas to intimate psychological thrillers, we discovered a resonant, persistent chord: the profound tension between **destiny** and **agency**, the ceaseless **forging of self**, and the indelible **legacy** left in the wake of our choices.
 
@@ -26,7 +26,7 @@ The philosophical undercurrent binding these diverse works is an exploration of 
 The unifying theme that emerged from this week's extraordinary collection is the **interplay between predetermination and self-authorship**. Our analyses revealed characters grappling with inherited destinies, societal expectations, genetic predispositions, and the sheer randomness of circumstance, all while striving to assert their unique will and define who they are. This is the essence of **existential navigation**: the constant negotiation between the 'given' and the 'chosen'.
 
 > "We are condemned to meaning. There is no escape from meaning, for we are meaning itself." — Maurice Merleau-Ponty
-{{: .prompt-info }}
+{: .prompt-info }
 
 In the vast cosmic canvas of the *Star Wars* saga, from the tragic prophecies of the prequels (*Star Wars: Episode I - The Phantom Menace*, *Star Wars: Episode II - Attack of the Clones*, *Star Wars: Episode III - Revenge of the Sith*) to the defiant heroism of the originals (*Star Wars: Episode IV - A New Hope*, *Star Wars: Episode V - The Empire Strikes Back*, *Star Wars: Episode VI - Return of the Jedi*) and the sacrificial courage of *Rogue One: A Star Wars Story*, we witness the relentless dance between prophecy and personal choice. Anakin Skywalker's fall, Luke's rise, and Jyn Erso's ultimate sacrifice are not merely plot points but profound explorations of **moral agency** within a seemingly fated universe. Are they fulfilling a script, or writing their own through sheer will?
 
@@ -34,8 +34,7 @@ Similarly, the grand dynastic struggles of *Game of Thrones* and *House of the D
 
 This dynamic of fate and choice, of a pre-existing labyrinth and the individual trying to navigate or even redesign its walls, provides a powerful lens through which to examine every work this week. It is a recurring meditation on whether we are defined by what happens *to* us, or by how we choose to respond.
 
-![This week's cinematic journey](/assets/img/posts/week6_2026_recap_hero.webp){{: .rounded-10 w-100 .shadow}}
-_A visual reflection of the week's philosophical explorations_
+---
 
 ## The Journey Through Cinema: A Kaleidoscope of Being
 
@@ -50,7 +49,7 @@ Thursday brought a rich confluence of perspectives. **Stranger Things** delved i
 The week also brought us face-to-face with the darker facets of human nature and the systems we inhabit. **Agent Mona 0.1** and **The Little Drummer Girl** plunged us into the deceptive worlds of espionage, where identity is a fluid weapon and truth a dangerous commodity. **The Gentlemen** examined the construction of a new identity amidst the moral ambiguities of power and illicit empire-building. The chilling insights of **The Silence of the Lambs** explored the deep psychological architecture of evil and the profound impact of trauma on identity. **The Day of the Jackal** presented a masterclass in calculated anonymity and meticulous planning, a testament to individual will against overwhelming odds. Even the playful **I Am Groot** offered a delightful, albeit simple, meditation on pure being and growth, unburdened by complex self-doubt.
 
 > "Cinema is a perpetually evolving mirror, reflecting not just our stories, but the very fabric of our being, challenging us to see the unseen within ourselves." — Andrei Tarkovsky
-{{: .prompt-info }}
+{: .prompt-info }
 
 Friday's analyses continued this exploration. **Death on the Nile** wove a web of deceit and passion, where hidden identities and desires lead to fatal consequences. **Chernobyl** stood as a stark testament to the catastrophic consequences of human hubris, systemic failure, and the sacrifices made in the pursuit of truth and containment—a legacy etched in the very landscape. **Rise of the Planet of the Apes** questioned human superiority, charting the evolution of a new species and the forging of a collective identity in defiance of oppression, building a profound legacy. **Black Mirror**, as always, held up a darkly reflective lens to technology's insidious influence on identity, choice, and the very nature of reality, constantly challenging our perception of what it means to be human in a digital age.
 
@@ -67,7 +66,7 @@ Each work added its voice to a growing chorus, building toward a profound realiz
 This week's cinematic journey was, at its core, a profound meditation on the **human condition** as a state of perpetual becoming. We witnessed characters, worlds, and entire societies caught in the liminal space between what they are, what they could be, and what they are compelled to be. The tension between **autonomy** and **heteronomy** emerged as a central paradox: how much of our lives are truly our own creation, and how much is merely a reaction to external forces, whether cosmic prophecies, genetic predispositions, societal pressures, or the trauma of the past?
 
 > "Man is a rope, tied between beast and overman — a rope over an abyss... What is great in man is that he is a bridge and not an end." — Friedrich Nietzsche
-{{: .prompt-warning }}
+{: .prompt-warning }
 
 The films highlighted the **fragility of identity** – how easily it can be fragmented by trauma (as in *The Crowded Room*), blurred by duty (*The Family Man*, *The Night Manager*), or reshaped by technology (*Black Mirror*). This multiplicity of self is not merely a psychological phenomenon but an existential truth: we are rarely a singular, monolithic entity, but rather a constellation of roles, memories, and aspirations, often in conflict. The quest for an "authentic self" becomes a lifelong endeavor, a narrative we continuously write and rewrite, often without a clear ending.
 
@@ -82,7 +81,7 @@ The week's analyses also confronted us with the **paradox of freedom**. Sartre f
 This week's comprehensive journey through 38 cinematic works reveals a profound truth: **existence is an ongoing act of architectural construction, a ceaseless process of building, dismantling, and rebuilding the self within the parameters of an often-unforgiving world.** We are not merely passive recipients of fate, nor are we entirely unconstrained architects. Instead, we exist in a dynamic tension, constantly negotiating the blueprints handed to us by circumstance, history, and biology with the unique designs of our own will and consciousness.
 
 > "The self is not something ready-made, but something in continuous formation through choice of action." — John Dewey
-{{: .prompt-danger }}
+{: .prompt-danger }
 
 The ultimate wisdom gleaned from this extraordinary week is that our lives are defined not by the destination, but by the myriad choices we make along the journey—the paths we take, the identities we assume and shed, the legacies we unintentionally or intentionally forge. Each film, whether exploring vast cosmic destinies or intimate psychological landscapes, underscored the enduring power of **human agency** and the **existential weight of every decision**. We are, truly, the narrators of our own unfolding being, even when the plot twists are unexpected and the stage seems set by forces beyond our control.
 
@@ -91,4 +90,4 @@ The ultimate wisdom gleaned from this extraordinary week is that our lives are d
 What patterns do you notice emerging in your own life's narrative? How do these 38 stories mirror your journey through **destiny** and **choice**, through the **forging of your own unique identity**, and the **legacy** you are building, moment by moment? Which film resonated most deeply with your current existential state, urging you to reflect on the architecture of your own being?
 
 > "To be, or not to be: that is the question." — William Shakespeare
-{{: .prompt-tip }}
+{: .prompt-tip }
