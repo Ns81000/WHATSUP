@@ -965,7 +965,7 @@ def wait_for_telegram_photo(timeout_minutes=30):
 
 
 def delete_telegram_message(message_id):
-    """Delete a message from Telegram."""
+    """Delete a single message from Telegram."""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         return False
     
@@ -975,12 +975,57 @@ def delete_telegram_message(message_id):
             'chat_id': TELEGRAM_CHAT_ID,
             'message_id': message_id
         }, timeout=10)
-        response.raise_for_status()
-        print("🗑️ Telegram message deleted")
-        return True
-    except Exception as e:
-        print(f"⚠️ Failed to delete message: {e}")
+        result = response.json()
+        if result.get('ok'):
+            return True
         return False
+    except Exception:
+        return False
+
+
+def delete_all_telegram_messages():
+    """Delete all recent messages in the Telegram chat to keep it clean.
+    Fetches up to 100 recent updates and deletes each message.
+    Silently skips messages that can't be deleted (too old, no permission, etc.).
+    """
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return 0
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+    deleted = 0
+    
+    try:
+        response = requests.get(url, params={'limit': 100}, timeout=30)
+        updates = response.json().get('result', [])
+        
+        if not updates:
+            return 0
+        
+        print(f"🗑️ Cleaning up Telegram chat ({len(updates)} messages)...")
+        
+        for update in updates:
+            message = update.get('message', {})
+            msg_id = message.get('message_id')
+            if msg_id:
+                if delete_telegram_message(msg_id):
+                    deleted += 1
+        
+        # Acknowledge all updates so they won't reappear
+        last_update_id = updates[-1].get('update_id', 0)
+        try:
+            requests.get(url, params={'offset': last_update_id + 1, 'limit': 1}, timeout=10)
+        except Exception:
+            pass
+        
+        if deleted > 0:
+            print(f"🗑️ Deleted {deleted} message(s) from Telegram")
+        else:
+            print("🗑️ No messages could be deleted (bot may need admin rights)")
+        
+    except Exception as e:
+        print(f"⚠️ Telegram cleanup error: {e}")
+    
+    return deleted
 
 
 def send_telegram_message(message):
@@ -1062,17 +1107,11 @@ def check_telegram_for_uploads(imdb_id):
                         
                         message_ids_to_delete.append(message['message_id'])
     
-    # Delete processed messages
-    for msg_id in message_ids_to_delete:
-        delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage"
-        try:
-            requests.post(delete_url, json={'chat_id': TELEGRAM_CHAT_ID, 'message_id': msg_id}, timeout=10)
-        except Exception as e:
-            print(f"⚠️ Failed to delete message {msg_id}: {e}")
-    
+    # Clean up ALL Telegram messages after downloading images
+    # (keeps the chat clean for next run)
     if downloaded_images:
         print(f"📥 Downloaded {len(downloaded_images)} images from Telegram")
-        print(f"🗑️ Deleted {len(message_ids_to_delete)} processed messages")
+        delete_all_telegram_messages()
     
     return downloaded_images
 
@@ -1235,14 +1274,9 @@ def generate_weekly_recap_post(week_posts, hero_image_path):
         posts_summary += f"{idx}. **{post['title']}** ({date_str})\n"
     
     # Handle case where no hero image is provided
-    image_section = ""
     hero_frontmatter = ""
     
     if hero_image_path:
-        image_section = f"""
-![This week's cinematic journey](/{hero_image_path}){{{{: .rounded-10 w-100 .shadow}}}}
-_A visual reflection of the week's philosophical explorations_
-"""
         hero_frontmatter = f"""image:
   path: /{hero_image_path}
   alt: "A cinematic representation of this week's philosophical journey"
@@ -1273,19 +1307,17 @@ CRITICAL REQUIREMENTS:
 3. **Structure** (1500-2000 words):
    
    **Opening** (3-4 paragraphs):
-   - Start with a POWERFUL opening quote from a famous philosopher (Nietzsche, Camus, Sartre, Plato, etc.) with {{{{: .prompt-tip }}}}
+   - Start with a POWERFUL opening quote from a famous philosopher (Nietzsche, Camus, Sartre, Plato, etc.) with {{: .prompt-tip }}
    - Second paragraph: Introduce the week's thematic journey with ***magnificent prose***
    - Third paragraph: Establish the philosophical context
    - Fourth paragraph: Preview how the films connect
    
    **Section 1: The Philosophical Thread** (##) (4-5 paragraphs):
    - Reveal the connecting theme with rich, evocative language
-   - Use a quote from a philosopher or film theorist (with {{{{: .prompt-info }}}})
+   - Use a quote from a philosopher or film theorist (with {{: .prompt-info }})
    - Reference 3-4 films to establish the pattern
    - Use **bold** for key philosophical concepts
    - Use *italics* for all film titles
-   
-   {image_section if hero_image_path else ""}
    
    **Section 2: The Journey Through Cinema** (##) (Comprehensive):
    - Create a beautiful narrative weaving through ALL {len(week_posts)} works
@@ -1294,19 +1326,19 @@ CRITICAL REQUIREMENTS:
      - Connect each work to the overarching theme
      - Use *film titles in italics* when mentioning them
    - Group related films into sub-themes if natural patterns emerge
-   - Include a profound quote (with {{{{: .prompt-info }}}}) in the middle of this section
+   - Include a profound quote (with {{: .prompt-info }}) in the middle of this section
    
    **Section 3: Deeper Waters - The Human Condition** (##) (5-6 paragraphs):
    - Profound philosophical analysis
    - Connect themes to universal human experiences
-   - Use a powerful quote from an existentialist philosopher ({{{{: .prompt-warning }}}})
+   - Use a powerful quote from an existentialist philosopher ({{: .prompt-warning }})
    - Explore paradoxes, contradictions, and tensions
    - Reference specific films as illustrations
    
    **Section 4: The Synthesis** (##) (3-4 paragraphs):
    - Bring all threads together
    - What ultimate truth emerged from this week's journey?
-   - Use a final profound quote ({{{{: .prompt-danger }}}} or {{{{: .prompt-tip }}}})
+   - Use a final profound quote ({{: .prompt-danger }} or {{: .prompt-tip }})
    
    **Closing** (2 paragraphs):
    - Synthesize the week's wisdom
@@ -1318,23 +1350,41 @@ CRITICAL REQUIREMENTS:
    - Film theorists: Bazin, Tarkovsky, Bergman, etc.
    - Literary figures: Kafka, Dostoevsky, Borges, etc.
    - Use these prompt styles for variety:
-     * {{{{: .prompt-tip }}}} - for wisdom, insight, enlightenment
-     * {{{{: .prompt-info }}}} - for key observations, patterns
-     * {{{{: .prompt-warning }}}} - for darker themes, tensions
-     * {{{{: .prompt-danger }}}} - for profound existential truths
+     * {{: .prompt-tip }} - for wisdom, insight, enlightenment
+     * {{: .prompt-info }} - for key observations, patterns
+     * {{: .prompt-warning }} - for darker themes, tensions
+     * {{: .prompt-danger }} - for profound existential truths
 
-5. **Visual Structure**:
+5. **Visual Structure** (MATCH the rich formatting of our individual posts):
    - Use **bold** generously for key philosophical concepts
    - Use ***bold italics*** for POWERFUL, striking statements
    - Use *italics* for ALL film titles without exception
-   - Use bullet lists with - only when listing multiple related items
+   - Use bullet lists with - for listing themes, observations, or key points
+   - Use numbered lists with 1. 2. 3. for sequences or rankings
    - Use --- horizontal rules between major sections (at least 3-4 total)
    - Embed blockquotes liberally throughout
+   - Mix short punchy sentences with longer reflective ones
+   - Use contractions naturally ("it's", "doesn't", "won't")
+   - Sound like a smart friend writing, not a stuffy academic
 
-6. **Mood Tags**: Select 3 from [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
+6. **HERO IMAGE RULE**:
+   - The hero image is ALREADY shown by the frontmatter `image:` field at the top of the page
+   - Do NOT embed the hero image again as ![image](path) in the body text
+   - The body should contain ZERO image markdown — text and formatting only
+
+7. **Mood Tags**: Select 3 from [Cerebral, Melancholy, Hopeful, Intense, Nostalgic, 
    Existential, Romantic, Heroic, Dystopian, Surreal, Profound, Transcendent]
 
-7. **Description**: Compelling meta description (150-160 chars) about the week's philosophical journey
+8. **Description**: Compelling meta description (150-160 chars) about the week's philosophical journey
+
+🎯 **ORIGINALITY MANDATE - ZERO REPETITION**:
+   - ❌ NEVER use these overused phrases:
+     * "This is where we discover the true weight of choice"
+     * "The hero's journey isn't just about what they achieve, but..."
+     * "This isn't just a film; it's..."
+   - ✅ Create FRESH, ORIGINAL observations for each recap
+   - ✅ Vary your sentence structures and philosophical angles
+   - ✅ Make each recap feel unique and spontaneous, not templated
 
 OUTPUT FORMAT:
 
@@ -1348,7 +1398,7 @@ description: "Compelling meta description capturing the week's essence"
 ---
 
 > "A profound, carefully selected quote from a famous philosopher that perfectly captures this week's journey" — Philosopher Name
-{{{{: .prompt-tip }}}}
+{{: .prompt-tip }}
 
 [Opening paragraph with ***magnificent, poetic prose*** that immediately draws the reader in...]
 
@@ -1363,11 +1413,11 @@ This week, we embarked on a cinematic odyssey through **{len(week_posts)} remark
 [Rich, evocative exploration of the common theme. Use sophisticated language, philosophical terminology...]
 
 > "Another carefully chosen quote that deepens our understanding of the theme" — Philosopher
-{{{{: .prompt-info }}}}
+{{: .prompt-info }}
 
 [Continue exploring with detailed film examples. Be specific, be profound...]
 
-{image_section if hero_image_path else ""}
+---
 
 ## The Journey Through Cinema
 
@@ -1382,7 +1432,7 @@ This week, we embarked on a cinematic odyssey through **{len(week_posts)} remark
 [Continue for ALL {len(week_posts)} works with equal attention and depth...]
 
 > "A mid-section quote that ties these works together" — Film Theorist or Philosopher
-{{{{: .prompt-info }}}}
+{{: .prompt-info }}
 
 Each work added its voice to a growing chorus, building toward a profound realization about **[the ultimate theme]**.
 
@@ -1395,7 +1445,7 @@ Each work added its voice to a growing chorus, building toward a profound realiz
 [Explore paradoxes, tensions, contradictions that emerged from the week's viewing...]
 
 > "A darker, more challenging quote about the human condition" — Existentialist Philosopher
-{{{{: .prompt-warning }}}}
+{{: .prompt-warning }}
 
 [Continue with rich, layered analysis referencing specific films...]
 
@@ -1406,7 +1456,7 @@ Each work added its voice to a growing chorus, building toward a profound realiz
 [Bring all threads together. What ultimate truth emerged? Be profound, be specific...]
 
 > "A final, powerful quote that captures the synthesis" — Philosopher
-{{{{: .prompt-danger }}}}
+{{: .prompt-danger }}
 
 [Conclude the synthesis with elegant prose...]
 
@@ -1415,7 +1465,7 @@ Each work added its voice to a growing chorus, building toward a profound realiz
 What patterns do you notice emerging in your own life's narrative? How do these {len(week_posts)} stories mirror your journey through **[theme]** and **[theme]**? Which film resonated most deeply with your current existential state?
 
 > "A poetic, reflective closing thought that lingers" — Philosopher or Poet
-{{{{: .prompt-tip }}}}
+{{: .prompt-tip }}
 
 """
     
@@ -2008,10 +2058,6 @@ def process_sunday_special():
                             if image_data:
                                 telegram_images['hero'] = image_data
                                 print(f"✅ Found manually uploaded hero image!")
-                                
-                                # Delete the uploaded image message from Telegram
-                                print("🗑️ Deleting uploaded image from Telegram...")
-                                delete_telegram_message(message['message_id'])
                                 break
         except Exception as e:
             print(f"⚠️ Telegram check error: {e}")
@@ -2019,6 +2065,10 @@ def process_sunday_special():
     # Step 4: If no manual upload, just log it — recap will publish without hero image
     if not telegram_images:
         print("⚠️ No hero image found via Telegram — recap will publish without hero image")
+    else:
+        # Clean up ALL Telegram messages after successfully downloading image
+        # (same approach as previous project — wipe chat clean after processing)
+        delete_all_telegram_messages()
     
     # Step 5: Process hero image if available
     hero_image_relative = None
