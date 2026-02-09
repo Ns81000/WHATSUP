@@ -439,6 +439,28 @@
       ],
       "url": "/posts/agatha-all-along/",
       "date": "2026-02-09T05:00:40.214865"
+    },
+    {
+      "imdb_id": "tt9110170",
+      "title": "Wrong Turn",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/wrong-turn/",
+      "date": "2026-02-09T13:08:02.233898"
+    },
+    {
+      "imdb_id": "tt4856322",
+      "title": "Halo: The Fall of Reach",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/halo-the-fall-of-reach/",
+      "date": "2026-02-09T13:08:24.865188"
     }
   ]
 }
