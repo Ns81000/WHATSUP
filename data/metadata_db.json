@@ -417,6 +417,28 @@
       ],
       "url": "/posts/the-little-drummer-girl/",
       "date": "2026-02-08T07:32:16.071478"
+    },
+    {
+      "imdb_id": "tt0290673",
+      "title": "Irreversible",
+      "moods": [
+        "Divisive",
+        "Controversial",
+        "Existential"
+      ],
+      "url": "/posts/irreversible/",
+      "date": "2026-02-09T05:00:15.844408"
+    },
+    {
+      "imdb_id": "tt15571732",
+      "title": "Agatha All Along",
+      "moods": [
+        "Existential",
+        "Flawed",
+        "Divisive"
+      ],
+      "url": "/posts/agatha-all-along/",
+      "date": "2026-02-09T05:00:40.214865"
     }
   ]
 }
