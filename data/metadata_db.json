@@ -483,6 +483,28 @@
       ],
       "url": "/posts/obi-wan-kenobi/",
       "date": "2026-02-10T05:10:58.837883"
+    },
+    {
+      "imdb_id": "tt0120363",
+      "title": "Toy Story 2",
+      "moods": [
+        "Existential",
+        "Nostalgic",
+        "Hopeful"
+      ],
+      "url": "/posts/toy-story-2/",
+      "date": "2026-02-10T13:12:11.723026"
+    },
+    {
+      "imdb_id": "tt26545355",
+      "title": "Creature Commandos",
+      "moods": [
+        "Existential",
+        "Flawed",
+        "Intense"
+      ],
+      "url": "/posts/creature-commandos/",
+      "date": "2026-02-10T13:12:32.100210"
     }
   ]
 }
