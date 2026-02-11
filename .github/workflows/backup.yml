@@ -1,0 +1,83 @@
+name: What's Up? Backup System
+
+# ============================================================
+# SCHEDULE: Every 3 days
+# ============================================================
+# Runs at 06:00 UTC (~11:30 AM IST) every 3 days
+# Compresses _posts, assets/img/posts, data, Original
+# Sends compressed archive via email
+# ============================================================
+
+on:
+  schedule:
+    # Every 3 days at 06:00 UTC (~11:30 AM IST)
+    # Days 1,4,7,10,13,16,19,22,25,28 of each month
+    - cron: '0 6 */3 * *'
+
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+
+# Prevent concurrent backup runs
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup-and-email:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📁 Verify backup directories exist
+        run: |
+          echo "📊 Checking backup targets..."
+
+          for dir in "_posts" "assets/img/posts" "data" "Original"; do
+            if [ -d "$dir" ]; then
+              FILE_COUNT=$(find "$dir" -type f | wc -l)
+              DIR_SIZE=$(du -sh "$dir" | cut -f1)
+              echo "   ✅ $dir/ — $FILE_COUNT files, $DIR_SIZE"
+            else
+              echo "   ⚠️  $dir/ — not found (will be skipped)"
+            fi
+          done
+
+      - name: 💾 Run backup script
+        env:
+          SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+        run: |
+          cd scripts
+          python backup.py
+
+      - name: 📊 Generate summary
+        if: always()
+        run: |
+          echo "## 💾 Backup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Directory | Files | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|------|" >> $GITHUB_STEP_SUMMARY
+
+          for dir in "_posts" "assets/img/posts" "data" "Original"; do
+            if [ -d "$dir" ]; then
+              FILE_COUNT=$(find "$dir" -type f | wc -l)
+              DIR_SIZE=$(du -sh "$dir" | cut -f1)
+              echo "| $dir/ | $FILE_COUNT | $DIR_SIZE |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $dir/ | — | missing |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run time:** $(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
