@@ -44,5 +44,8 @@ data/sunday_notification_msg.json
 .DS_Store
 Thumbs.db
 
+# Backup temp files
+.backup_temp/
+
 # Admin dashboard (local only)
 admin/
