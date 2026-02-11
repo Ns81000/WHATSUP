@@ -527,6 +527,28 @@
       ],
       "url": "/posts/the-haunting-of-hill-house/",
       "date": "2026-02-11T05:05:42.791840"
+    },
+    {
+      "imdb_id": "tt9179430",
+      "title": "Vikram",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Flawed"
+      ],
+      "url": "/posts/vikram/",
+      "date": "2026-02-11T13:04:31.152445"
+    },
+    {
+      "imdb_id": "tt10466872",
+      "title": "Dune: Prophecy",
+      "moods": [
+        "Existential",
+        "Dystopian",
+        "Controversial"
+      ],
+      "url": "/posts/dune-prophecy/",
+      "date": "2026-02-11T13:04:53.987098"
     }
   ]
 }
