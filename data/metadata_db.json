@@ -505,6 +505,28 @@
       ],
       "url": "/posts/creature-commandos/",
       "date": "2026-02-10T13:12:32.100210"
+    },
+    {
+      "imdb_id": "tt9214772",
+      "title": "Monkey Man",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Flawed"
+      ],
+      "url": "/posts/monkey-man/",
+      "date": "2026-02-11T05:05:18.522888"
+    },
+    {
+      "imdb_id": "tt6763664",
+      "title": "The Haunting of Hill House",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Melancholy"
+      ],
+      "url": "/posts/the-haunting-of-hill-house/",
+      "date": "2026-02-11T05:05:42.791840"
     }
   ]
 }
