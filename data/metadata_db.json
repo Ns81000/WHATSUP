@@ -593,6 +593,28 @@
       ],
       "url": "/posts/pluribus/",
       "date": "2026-02-12T13:11:21.272268"
+    },
+    {
+      "imdb_id": "tt0993846",
+      "title": "The Wolf of Wall Street",
+      "moods": [
+        "Divisive",
+        "Controversial",
+        "Existential"
+      ],
+      "url": "/posts/the-wolf-of-wall-street/",
+      "date": "2026-02-13T05:03:17.216445"
+    },
+    {
+      "imdb_id": "tt11280740",
+      "title": "Severance",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Dystopian"
+      ],
+      "url": "/posts/severance/",
+      "date": "2026-02-13T05:03:40.296389"
     }
   ]
 }
