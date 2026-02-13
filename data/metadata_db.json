@@ -615,6 +615,28 @@
       ],
       "url": "/posts/severance/",
       "date": "2026-02-13T05:03:40.296389"
+    },
+    {
+      "imdb_id": "tt2250912",
+      "title": "Spider-Man: Homecoming",
+      "moods": [
+        "Heroic",
+        "Existential",
+        "Flawed"
+      ],
+      "url": "/posts/spider-man-homecoming/",
+      "date": "2026-02-13T12:59:23.768323"
+    },
+    {
+      "imdb_id": "tt9253284",
+      "title": "Andor",
+      "moods": [
+        "Existential",
+        "Dystopian",
+        "Intense"
+      ],
+      "url": "/posts/andor/",
+      "date": "2026-02-13T12:59:46.295921"
     }
   ]
 }
