@@ -11,7 +11,7 @@ Features:
 - Telegram/SMTP alerts for missing images
 - WebP image optimization (<500KB)
 - Pre-check system for next item's images
-- Sunday morning notification-only mode
+- Sunday weekly recap with Unsplash philosophical images
 """
 
 import os
@@ -46,6 +46,7 @@ except ImportError:
 # API Keys (from environment variables)
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 TMDB_API_KEY = os.getenv('TMDB_API_KEY')
+UNSPLASH_ACCESS_KEY = os.getenv('UNSPLASH_ACCESS_KEY')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 SMTP_EMAIL = os.getenv('SMTP_EMAIL')
@@ -64,6 +65,7 @@ SERIES_CSV = DATA_DIR / 'series.csv'
 HISTORY_FILE = DATA_DIR / 'history.log'
 METADATA_FILE = DATA_DIR / 'metadata_db.json'
 IMAGE_USAGE_FILE = DATA_DIR / 'used_images.json'
+UNSPLASH_USAGE_FILE = DATA_DIR / 'used_unsplash.json'
 
 # TMDB Configuration
 TMDB_BASE_URL = 'https://api.themoviedb.org/3'
@@ -80,7 +82,7 @@ BODY_TARGET_WIDTH = 1280
 def validate_environment():
     """Ensure all required environment variables are set."""
     required = ['GEMINI_API_KEY', 'TMDB_API_KEY']
-    optional = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'SMTP_EMAIL', 'SMTP_PASSWORD']
+    optional = ['UNSPLASH_ACCESS_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'SMTP_EMAIL', 'SMTP_PASSWORD']
     
     missing_required = [var for var in required if not os.getenv(var)]
     missing_optional = [var for var in optional if not os.getenv(var)]
@@ -355,34 +357,6 @@ def is_sunday():
     # Day-of-week detection (works for manual triggers & local runs)
     now = datetime.now()
     return now.weekday() == 6  # 0=Monday, 6=Sunday
-
-
-def get_sunday_phase():
-    """
-    Determine which phase of the Sunday mechanism we're in.
-    
-    The Sunday mechanism is two-phase:
-      Phase 1 (Morning cron '0 3 * * *'): Send notification + image prompt.
-      Phase 2 (Evening cron '0 14 * * 0'): Generate weekly recap post.
-    
-    Detection priority:
-      1. TRIGGER_SCHEDULE env var — '0 14 * * 0' = Phase 2, anything else = Phase 1
-      2. For manual/local runs: defaults to Phase 1 (send notification).
-         Set env SUNDAY_PHASE=2 to force Phase 2 manually.
-    """
-    trigger = os.getenv('TRIGGER_SCHEDULE', '').strip()
-    if trigger == '0 14 * * 0':
-        return 2
-    
-    # Manual override via workflow_dispatch dropdown or env var
-    # 'auto' means no override — fall through to default
-    override = os.getenv('SUNDAY_PHASE', '').strip()
-    if override == '2':
-        return 2
-    if override == '1':
-        return 1
-    
-    return 1
 
 
 def select_items():
@@ -707,6 +681,200 @@ def load_used_images():
     except Exception as e:
         print(f"⚠️ Error loading image usage file: {e}")
         return set()
+
+
+# ==================== UNSPLASH PHILOSOPHICAL IMAGES ====================
+
+def load_used_unsplash_images():
+    """Load the list of already used Unsplash image IDs."""
+    if not UNSPLASH_USAGE_FILE.exists():
+        return set()
+    
+    try:
+        with open(UNSPLASH_USAGE_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return set(data.get('used_ids', []))
+    except Exception as e:
+        print(f"⚠️ Error loading Unsplash usage file: {e}")
+        return set()
+
+
+def save_used_unsplash_image(image_id, image_url, photographer):
+    """Mark an Unsplash image ID as used."""
+    UNSPLASH_USAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        if UNSPLASH_USAGE_FILE.exists():
+            with open(UNSPLASH_USAGE_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        else:
+            data = {'used_ids': [], 'history': []}
+        
+        if image_id not in data['used_ids']:
+            data['used_ids'].append(image_id)
+            data['history'].append({
+                'id': image_id,
+                'url': image_url,
+                'photographer': photographer,
+                'used_at': datetime.now().isoformat()
+            })
+        
+        with open(UNSPLASH_USAGE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"⚠️ Error saving Unsplash usage: {e}")
+
+
+def fetch_unsplash_philosophical_image(week_posts):
+    """
+    Fetch a philosophical/cinematic image from Unsplash for the weekly recap.
+    Uses Gemini to generate search keywords based on the week's themes.
+    Ensures no image is repeated.
+    """
+    if not UNSPLASH_ACCESS_KEY:
+        print("⚠️ Unsplash API key not configured")
+        return None, None
+    
+    # Generate search keywords using Gemini based on week's posts
+    search_query = generate_unsplash_search_query(week_posts)
+    if not search_query:
+        # Fallback to generic philosophical searches
+        search_query = random.choice([
+            'philosophical contemplation',
+            'cinematic landscape',
+            'existential solitude',
+            'epic journey',
+            'dramatic sky',
+            'mysterious atmosphere',
+            'human silhouette contemplation',
+            'abstract philosophy'
+        ])
+    
+    print(f"🔍 Searching Unsplash for: '{search_query}'")
+    
+    # Load already used images
+    used_images = load_used_unsplash_images()
+    print(f"   ℹ️ {len(used_images)} Unsplash images already used")
+    
+    # Search Unsplash API
+    try:
+        url = "https://api.unsplash.com/search/photos"
+        params = {
+            'query': search_query,
+            'per_page': 30,
+            'orientation': 'landscape',
+            'content_filter': 'high'
+        }
+        headers = {
+            'Authorization': f'Client-ID {UNSPLASH_ACCESS_KEY}'
+        }
+        
+        response = requests.get(url, params=params, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        
+        results = data.get('results', [])
+        if not results:
+            print(f"⚠️ No Unsplash results for '{search_query}'")
+            return None, None
+        
+        print(f"   📸 Found {len(results)} images")
+        
+        # Filter out already used images
+        available = [img for img in results if img['id'] not in used_images]
+        
+        if not available:
+            print("   ⚠️ All results already used, resetting to full list")
+            available = results
+        else:
+            print(f"   ✓ {len(available)} unused images available")
+        
+        # Select a random image from top results (better quality usually at top)
+        selected = random.choice(available[:min(10, len(available))])
+        
+        image_id = selected['id']
+        # Use 'regular' size (1080px wide) - good quality without being huge
+        image_url = selected['urls'].get('regular', selected['urls']['full'])
+        photographer = selected['user']['name']
+        photographer_url = selected['user']['links']['html']
+        
+        print(f"   ✓ Selected: {image_id} by {photographer}")
+        
+        # Download the image
+        image_data = download_image(image_url)
+        if not image_data:
+            print("   ❌ Failed to download image")
+            return None, None
+        
+        # Mark as used
+        save_used_unsplash_image(image_id, image_url, photographer)
+        
+        # Return image data and attribution info
+        attribution = f"Photo by [{photographer}]({photographer_url}) on [Unsplash](https://unsplash.com)"
+        return image_data, attribution
+        
+    except requests.RequestException as e:
+        print(f"❌ Unsplash API error: {e}")
+        return None, None
+
+
+def generate_unsplash_search_query(week_posts):
+    """Use Gemini to generate an Unsplash search query based on week's themes."""
+    if not GENAI_AVAILABLE or not GEMINI_API_KEY:
+        return None
+    
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        
+        titles_list = ", ".join([p['title'] for p in week_posts])
+        
+        prompt = f"""You are helping search Unsplash for a philosophical/cinematic image.
+
+This week's analyzed media: {titles_list}
+
+Generate a SHORT (2-4 words) Unsplash search query that would find a philosophical, 
+contemplative, or cinematic landscape image capturing the thematic essence of these works.
+
+Focus on:
+- Abstract philosophical concepts (solitude, journey, reflection, destiny)
+- Cinematic moods (dramatic, mysterious, epic, melancholic)
+- Visual metaphors (crossroads, horizon, storm, light/shadow)
+
+DO NOT include:
+- Specific character names
+- Movie/show titles
+- Copyrighted terms
+
+Respond with ONLY the search query, nothing else. Examples of good queries:
+- solitary journey sunset
+- existential contemplation
+- dramatic storm clouds
+- philosophical solitude
+- epic landscape silhouette"""
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.7,
+                max_output_tokens=50,
+            )
+        )
+        
+        query = response.text.strip().lower()
+        # Clean up - remove quotes, extra punctuation
+        query = re.sub(r'["\']', '', query)
+        query = query.split('\n')[0]  # Take first line only
+        
+        if len(query) > 50 or len(query) < 3:
+            return None
+            
+        print(f"   🤖 Gemini suggested: '{query}'")
+        return query
+        
+    except Exception as e:
+        print(f"⚠️ Gemini search query error: {e}")
+        return None
 
 
 def save_used_image(file_path):
@@ -1258,7 +1426,7 @@ Write in a dense, descriptive, comma-separated prompt style. No bullet points, n
     print("❌ All retries exhausted for image prompt generation")
     return None
 
-def generate_weekly_recap_post(week_posts, hero_image_path):
+def generate_weekly_recap_post(week_posts, hero_image_path, unsplash_attribution=None):
     """Generate a beautiful weekly journey recap post with Gemini AI."""
     
     if not GENAI_AVAILABLE or not GEMINI_API_KEY:
@@ -1279,8 +1447,9 @@ def generate_weekly_recap_post(week_posts, hero_image_path):
     if hero_image_path:
         hero_frontmatter = f"""image:
   path: /{hero_image_path}
-  alt: "A cinematic representation of this week's philosophical journey"
-"""
+  alt: "A cinematic representation of this week's philosophical journey\""""
+        if unsplash_attribution:
+            hero_frontmatter += f"\n  credit: \"{unsplash_attribution}\""
     else:
         hero_frontmatter = "# No hero image available"
     
@@ -1972,7 +2141,7 @@ def extract_moods_from_content(content):
 # ==================== MAIN PROCESSING ====================
 
 def process_sunday_special():
-    """Process the Sunday special weekly recap post."""
+    """Process the Sunday special weekly recap post with Unsplash hero image."""
     
     print(f"\n{'='*60}")
     print(f"🌟 PROCESSING SUNDAY SPECIAL - WEEKLY RECAP")
@@ -1994,108 +2163,42 @@ def process_sunday_special():
     for post in week_posts:
         print(f"   - {post['title']}")
     
-    # Step 1.5: Delete the Sunday morning notification message from Telegram
-    notif_file = DATA_DIR / 'sunday_notification_msg.json'
-    if notif_file.exists():
-        try:
-            with open(notif_file, 'r', encoding='utf-8') as f:
-                notif_data = json.load(f)
-            morning_msg_id = notif_data.get('message_id')
-            if morning_msg_id:
-                delete_telegram_message(morning_msg_id)
-                print("🗑️ Deleted Sunday morning notification from Telegram")
-            notif_file.unlink()  # Remove the tracking file
-        except Exception as e:
-            print(f"⚠️ Could not delete morning notification: {e}")
-    
-    # Step 2: Email summary was already sent in Phase 1 (morning notification)
-    # No need to send again — avoids duplicate email
-    
-    # Step 3: Check Telegram for manually uploaded hero image
     week_num = datetime.now().isocalendar()[1]
     year = datetime.now().year
-    recap_token = f"RECAP_W{week_num}_{year}"
     
-    print(f"\n🔍 Checking Telegram for manual hero image upload (token: {recap_token})...")
+    # Step 2: Fetch philosophical hero image from Unsplash
+    print(f"\n🖼️ Fetching philosophical hero image from Unsplash...")
+    hero_image_data, unsplash_attribution = fetch_unsplash_philosophical_image(week_posts)
     
-    # Check if user already uploaded an image with the recap token
-    telegram_images = {}
-    if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
-        try:
-            # Use limit=100 to ensure we scan enough updates
-            response = requests.get(url, params={'limit': 100}, timeout=30)
-            updates = response.json().get('result', [])
-            print(f"   📬 Scanning {len(updates)} Telegram updates for token: {recap_token}")
-            
-            for update in updates:
-                message = update.get('message', {})
-                caption = (message.get('caption') or '').strip()
-                
-                if recap_token.upper() in caption.upper():
-                    # Try photo first (compressed upload), then document (file upload)
-                    file_id = None
-                    photos = message.get('photo', [])
-                    if photos:
-                        file_id = photos[-1]['file_id']  # Highest resolution
-                        print(f"   📷 Found image as photo upload")
-                    elif message.get('document'):
-                        doc = message['document']
-                        mime = doc.get('mime_type', '')
-                        if mime.startswith('image/'):
-                            file_id = doc['file_id']
-                            print(f"   📎 Found image as document upload ({mime})")
-                    
-                    if file_id:
-                        # Get file and download
-                        file_info_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile"
-                        file_info = requests.get(file_info_url, params={'file_id': file_id}, timeout=10).json()
-                        file_path = file_info.get('result', {}).get('file_path')
-                        
-                        if file_path:
-                            file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
-                            image_data = download_image(file_url)
-                            if image_data:
-                                telegram_images['hero'] = image_data
-                                print(f"✅ Found manually uploaded hero image!")
-                                break
-        except Exception as e:
-            print(f"⚠️ Telegram check error: {e}")
-    
-    # Step 4: If no manual upload, just log it — recap will publish without hero image
-    if not telegram_images:
-        print("⚠️ No hero image found via Telegram — recap will publish without hero image")
-    else:
-        # Clean up ALL Telegram messages after successfully downloading image
-        # (same approach as previous project — wipe chat clean after processing)
-        delete_all_telegram_messages()
-    
-    # Step 5: Process hero image if available
     hero_image_relative = None
+    hero_filename = None
     
-    if telegram_images and 'hero' in telegram_images:
+    if hero_image_data:
         IMAGES_DIR.mkdir(parents=True, exist_ok=True)
         
         hero_filename = f"week{week_num}_{year}_recap_hero.webp"
         hero_path = IMAGES_DIR / hero_filename
         
         print(f"📸 Processing hero image...")
-        if process_and_save_image(telegram_images['hero'], hero_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
+        if process_and_save_image(hero_image_data, hero_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
             hero_image_relative = str(hero_path.relative_to(ROOT_DIR)).replace('\\', '/')
             print(f"✅ Hero image saved: {hero_filename}")
         else:
             print("⚠️ Failed to process hero image - continuing without it")
+            unsplash_attribution = None
+    else:
+        print("⚠️ Could not fetch Unsplash image - recap will publish without hero image")
     
-    # Step 6: Generate the weekly recap content with Gemini
+    # Step 3: Generate the weekly recap content with Gemini
     print("\n🤖 Generating weekly recap content with Gemini AI...")
     
-    content = generate_weekly_recap_post(week_posts, hero_image_relative)
+    content = generate_weekly_recap_post(week_posts, hero_image_relative, unsplash_attribution)
     
     if not content:
         print("❌ Failed to generate weekly recap content")
         return False
     
-    # Step 7: Save the blog post
+    # Step 4: Save the blog post
     print("\n💾 Saving weekly recap post...")
     
     # Generate filename — use TODAY's date (Sunday) so the recap sorts
@@ -2115,7 +2218,7 @@ def process_sunday_special():
     
     print(f"✅ Weekly recap post saved: {post_filename}")
     
-    # Step 8: Add to history
+    # Step 5: Add to history
     recap_title = f"Weekly Recap - Week {week_num}"
     save_to_history(f"recap_w{week_num}_{year}", recap_title)
     
@@ -2125,7 +2228,7 @@ def process_sunday_special():
     if hero_image_relative:
         print(f"   Image: {hero_filename}")
     else:
-        print(f"   Image: None (notification sent for next week)")
+        print(f"   Image: None")
     print("="*60)
     
     return True
@@ -2281,191 +2384,6 @@ def pre_check_next_items(next_movie, next_series):
     return len(items_to_alert) == 0  # Return True if all have images
 
 
-# ==================== SUNDAY NOTIFICATION ====================
-
-def send_sunday_morning_notification():
-    """Send Sunday morning notification for weekly recap - notification only, no post generation."""
-    
-    print(f"\n{'='*60}")
-    print(f"🌅 SUNDAY MORNING - WEEKLY RECAP NOTIFICATION")
-    print(f"{'='*60}")
-    
-    # Guard: skip if notification was already sent today
-    # (prevents duplicates when both workflow_dispatch and 0 3 * * * cron fire)
-    notif_file = DATA_DIR / 'sunday_notification_msg.json'
-    if notif_file.exists():
-        try:
-            with open(notif_file, 'r', encoding='utf-8') as f:
-                notif_data = json.load(f)
-            saved_token = notif_data.get('token', '')
-            week_num = datetime.now().isocalendar()[1]
-            year = datetime.now().year
-            expected_token = f"RECAP_W{week_num}_{year}"
-            if saved_token == expected_token:
-                print("⏭️ Sunday morning notification already sent today — skipping duplicate")
-                return True
-        except Exception:
-            pass  # If file is corrupt, proceed with sending
-    
-    # Get this week's posts from history
-    week_posts = get_week_posts_from_history()
-    
-    if not week_posts:
-        print("⚠️ No posts found for this week. Skipping notification.")
-        return False
-    
-    if len(week_posts) < 3:
-        print(f"⚠️ Only {len(week_posts)} posts this week - notification skipped")
-        return False
-    
-    print(f"📊 Found {len(week_posts)} posts from this week")
-    
-    week_num = datetime.now().isocalendar()[1]
-    year = datetime.now().year
-    recap_token = f"RECAP_W{week_num}_{year}"
-    
-    # Generate image prompt via Gemini
-    print("\n🎨 Generating image prompt via Gemini...")
-    image_prompt = generate_recap_image_prompt(week_posts)
-    
-    if not image_prompt:
-        image_prompt = "(Could not generate prompt — Gemini unavailable. Use any philosophical/cinematic landscape image.)"
-    
-    # Send email summary
-    print("\n📧 Sending weekly summary email...")
-    if SMTP_EMAIL and SMTP_PASSWORD and NOTIFICATION_EMAIL:
-        try:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = f"🌟 What's Up? Weekly Recap - Upload Image for Tonight!"
-            msg['From'] = SMTP_EMAIL
-            msg['To'] = NOTIFICATION_EMAIL
-            
-            posts_html = ""
-            for idx, post in enumerate(week_posts, 1):
-                date_str = post['date'].strftime('%A, %b %d at %I:%M %p')
-                posts_html += f"""
-                <li>
-                    <strong>{post['title']}</strong><br>
-                    <small>{date_str} • IMDb: {post['imdb_id']}</small>
-                </li>
-                """
-            
-            # Escape HTML in image prompt
-            import html as html_module
-            image_prompt_html = html_module.escape(image_prompt)
-            
-            html = f"""
-            <html>
-            <head>
-                <style>
-                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                    h2 {{ color: #6366f1; }}
-                    ul {{ list-style-type: none; padding: 0; }}
-                    li {{ margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 3px solid #6366f1; }}
-                    .highlight {{ background: #fef3c7; padding: 20px; border-left: 4px solid #f59e0b; margin: 20px 0; }}
-                    .code {{ background: #1f2937; color: #10b981; padding: 5px 10px; border-radius: 4px; font-family: monospace; font-size: 16px; }}
-                    .prompt-box {{ background: #eef2ff; padding: 20px; border-left: 4px solid #6366f1; margin: 20px 0; border-radius: 8px; }}
-                    .prompt-text {{ font-family: 'Georgia', serif; font-size: 14px; line-height: 1.8; color: #1e293b; white-space: pre-wrap; }}
-                    .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }}
-                    .deadline {{ color: #dc2626; font-weight: bold; font-size: 18px; }}
-                </style>
-            </head>
-            <body>
-                <h2>🌟 Sunday Special - Weekly Recap Coming Tonight!</h2>
-                <p>Good morning! Here's what we published this week:</p>
-                <ul>
-                    {posts_html}
-                </ul>
-                
-                <div class="prompt-box">
-                    <h3>🎨 AI-Generated Image Prompt for This Week's Recap</h3>
-                    <p>Use this prompt in any image generator (Midjourney, DALL-E, Stable Diffusion, etc.) to create the hero image:</p>
-                    <div class="prompt-text">{image_prompt_html}</div>
-                    <p><small>Style: Painterly 2.5D — 3D models with 2D-painted textures</small></p>
-                </div>
-                
-                <div class="highlight">
-                    <h3>📸 Upload Hero Image for Tonight's Recap!</h3>
-                    <p><strong>Deadline:</strong> <span class="deadline">Before 7:30 PM IST today</span></p>
-                    <p><strong>What to do:</strong></p>
-                    <ol>
-                        <li>Copy the image prompt above</li>
-                        <li>Paste into your preferred image generator</li>
-                        <li>Generate a landscape image (1920px+ wide)</li>
-                        <li>Upload to Telegram bot with caption: <span class="code">{recap_token}</span></li>
-                    </ol>
-                    <p><strong>Tonight at 7:30 PM IST:</strong></p>
-                    <ul>
-                        <li>✅ Script will check Telegram for your image</li>
-                        <li>✅ Generate beautiful weekly recap (synthesizing all {len(week_posts)} posts)</li>
-                        <li>✅ Publish with your hero image</li>
-                    </ul>
-                    <p><small>💡 If you don't upload, recap will publish text-only (still beautiful!)</small></p>
-                </div>
-                
-                <div class="footer">
-                    <p>This week's recap will weave together all {len(week_posts)} analyses into one philosophical narrative.</p>
-                    <p><em>Automation will resume at 7:30 PM IST for recap generation.</em></p>
-                </div>
-            </body>
-            </html>
-            """
-            
-            msg.attach(MIMEText(html, 'html'))
-            
-            with smtplib.SMTP("smtp.gmail.com", 587) as server:
-                server.starttls()
-                server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                server.sendmail(SMTP_EMAIL, NOTIFICATION_EMAIL, msg.as_string())
-            
-            print(f"✅ Email sent successfully")
-        except Exception as e:
-            print(f"❌ Email error: {e}")
-    
-    # Send Telegram notification with image prompt
-    print("\n📱 Sending Telegram notification...")
-    if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
-        telegram_msg = f"""🌅 *GOOD MORNING! Sunday Special Today*
-
-This week, we published *{len(week_posts)} philosophical analyses*.
-
-🌟 *Tonight's Weekly Recap*
-At 7:30 PM IST, the automation will:
-✅ Check Telegram for your image
-✅ Generate beautiful weekly synthesis
-✅ Publish the recap post
-
-🎨 *AI-Generated Image Prompt:*
-```
-{image_prompt}
-```
-
-📸 *Upload hero image before 7:30 PM IST*
-Caption: `{recap_token}`
-Requirements: Landscape (1920px+ wide)
-
-_Skip it? No problem! Recap will publish text-only._
-"""
-        msg_id = send_telegram_message(telegram_msg)
-        if msg_id:
-            # Save notification message ID so Sunday evening can delete it
-            notif_file = DATA_DIR / 'sunday_notification_msg.json'
-            try:
-                with open(notif_file, 'w', encoding='utf-8') as f:
-                    json.dump({'message_id': msg_id, 'token': recap_token}, f)
-                print(f"   💾 Notification message ID saved for cleanup")
-            except Exception as e:
-                print(f"   ⚠️ Could not save notification msg ID: {e}")
-    
-    print("\n" + "="*60)
-    print(f"✅ Sunday morning notification sent!")
-    print(f"   Recap will be generated tonight at 7:30 PM IST")
-    print(f"   Token: {recap_token}")
-    print("="*60)
-    
-    return True
-
-
 # ==================== MAIN ENTRY POINT ====================
 
 def main():
@@ -2483,43 +2401,23 @@ def main():
     print(f"⏰ Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     # ==================== SUNDAY AUTO-DETECTION ====================
-    # The script automatically detects Sunday and determines the phase:
-    #   Phase 1: Send notification + image prompt (morning cron: 0 3 * * *)
-    #   Phase 2: Check Telegram for image + generate recap (evening cron: 0 14 * * 0)
-    # Phase detection uses the TRIGGER_SCHEDULE env var (cron expression).
-    # For manual triggers: defaults to Phase 1. Set SUNDAY_PHASE=2 for Phase 2.
+    # On Sunday, generate the weekly recap with Unsplash hero image
+    # No manual intervention needed - fully automated
     # ==============================================================
     
     if is_sunday():
-        phase = get_sunday_phase()
-        print(f"\n🌟 SUNDAY DETECTED — Phase {phase}")
+        print(f"\n🌟 SUNDAY DETECTED — Generating Weekly Recap")
+        print("📸 Hero image will be fetched from Unsplash (philosophical themes)")
         
-        if phase == 1:
-            # Phase 1: Send notification + image prompt
-            print("🌅 Sunday Phase 1: Sending notification & image prompt")
-            print("   User can generate and upload hero image to Telegram")
-            print("   Phase 2 (recap generation) will run on the next trigger")
-            
-            # Validate environment (Phase 1 uses Gemini for image prompt)
-            print("\n📋 Validating environment...")
-            validate_environment()
-            
-            send_sunday_morning_notification()
-            return
+        # Validate environment
+        print("\n📋 Validating environment...")
+        validate_environment()
+        
+        if process_sunday_special():
+            print("\n✅ Sunday special completed successfully!")
         else:
-            # Phase 2: Generate weekly recap post
-            print("🌙 Sunday Phase 2: Generating weekly recap post")
-            print("   Checking Telegram for uploaded hero image...")
-            
-            # Validate environment first
-            print("\n📋 Validating environment...")
-            validate_environment()
-            
-            if process_sunday_special():
-                print("\n✅ Sunday special completed successfully!")
-            else:
-                print("\n⚠️ Sunday special failed or timed out")
-            return
+            print("\n⚠️ Sunday special failed")
+        return
     
     # ==================== NORMAL WEEKDAY PROCESSING ====================
     
