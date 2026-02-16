@@ -659,6 +659,28 @@
       ],
       "url": "/posts/ahsoka/",
       "date": "2026-02-16T05:14:32.229587"
+    },
+    {
+      "imdb_id": "tt4919268",
+      "title": "Bad Boys: Ride or Die",
+      "moods": [
+        "Flawed",
+        "Intense",
+        "Nostalgic"
+      ],
+      "url": "/posts/bad-boys-ride-or-die/",
+      "date": "2026-02-16T13:12:37.779620"
+    },
+    {
+      "imdb_id": "tt9018736",
+      "title": "Avatar: The Last Airbender",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/avatar-the-last-airbender/",
+      "date": "2026-02-16T13:13:02.348164"
     }
   ]
 }
