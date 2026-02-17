@@ -681,6 +681,28 @@
       ],
       "url": "/posts/avatar-the-last-airbender/",
       "date": "2026-02-16T13:13:02.348164"
+    },
+    {
+      "imdb_id": "tt6146586",
+      "title": "John Wick: Chapter 3 - Parabellum",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Flawed"
+      ],
+      "url": "/posts/john-wick-chapter-3-parabellum/",
+      "date": "2026-02-17T04:59:29.023763"
+    },
+    {
+      "imdb_id": "tt9140560",
+      "title": "WandaVision",
+      "moods": [
+        "Existential",
+        "Melancholy",
+        "Divisive"
+      ],
+      "url": "/posts/wandavision/",
+      "date": "2026-02-17T04:59:51.613854"
     }
   ]
 }
