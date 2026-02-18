@@ -747,6 +747,28 @@
       ],
       "url": "/posts/arcane/",
       "date": "2026-02-18T04:49:42.643377"
+    },
+    {
+      "imdb_id": "tt10350922",
+      "title": "Laxmii",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Controversial"
+      ],
+      "url": "/posts/laxmii/",
+      "date": "2026-02-18T13:00:55.006177"
+    },
+    {
+      "imdb_id": "tt10574558",
+      "title": "Midnight Mass",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/midnight-mass/",
+      "date": "2026-02-18T13:01:17.060269"
     }
   ]
 }
