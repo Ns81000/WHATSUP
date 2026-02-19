@@ -769,6 +769,28 @@
       ],
       "url": "/posts/midnight-mass/",
       "date": "2026-02-18T13:01:17.060269"
+    },
+    {
+      "imdb_id": "tt2824852",
+      "title": "Deadly Virtues: Love.Honour.Obey.",
+      "moods": [
+        "Existential",
+        "Divisive",
+        "Intense"
+      ],
+      "url": "/posts/deadly-virtues-love-honour-obey/",
+      "date": "2026-02-19T04:58:05.819413"
+    },
+    {
+      "imdb_id": "tt13157618",
+      "title": "Secret Invasion",
+      "moods": [
+        "Divisive",
+        "Flawed",
+        "Existential"
+      ],
+      "url": "/posts/secret-invasion/",
+      "date": "2026-02-19T04:58:30.219890"
     }
   ]
 }
