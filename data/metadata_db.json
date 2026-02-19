@@ -791,6 +791,28 @@
       ],
       "url": "/posts/secret-invasion/",
       "date": "2026-02-19T04:58:30.219890"
+    },
+    {
+      "imdb_id": "tt28863512",
+      "title": "The Bad Guys: A Very Bad Holiday",
+      "moods": [
+        "Flawed",
+        "Hopeful",
+        "Existential"
+      ],
+      "url": "/posts/the-bad-guys-a-very-bad-holiday/",
+      "date": "2026-02-19T13:04:34.396195"
+    },
+    {
+      "imdb_id": "tt13159924",
+      "title": "Gen V",
+      "moods": [
+        "Intense",
+        "Dystopian",
+        "Existential"
+      ],
+      "url": "/posts/gen-v/",
+      "date": "2026-02-19T13:04:59.418177"
     }
   ]
 }
