@@ -835,6 +835,28 @@
       ],
       "url": "/posts/eyes-of-wakanda/",
       "date": "2026-02-20T04:50:13.714947"
+    },
+    {
+      "imdb_id": "tt11235772",
+      "title": "The Voyeurs",
+      "moods": [
+        "Existential",
+        "Flawed",
+        "Divisive"
+      ],
+      "url": "/posts/the-voyeurs/",
+      "date": "2026-02-20T13:05:59.985539"
+    },
+    {
+      "imdb_id": "tt14186672",
+      "title": "Landman",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Divisive"
+      ],
+      "url": "/posts/landman/",
+      "date": "2026-02-20T13:06:22.021479"
     }
   ]
 }
