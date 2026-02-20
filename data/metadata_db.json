@@ -813,6 +813,28 @@
       ],
       "url": "/posts/gen-v/",
       "date": "2026-02-19T13:04:59.418177"
+    },
+    {
+      "imdb_id": "tt7461686",
+      "title": "Daddio",
+      "moods": [
+        "Existential",
+        "Divisive",
+        "Cerebral"
+      ],
+      "url": "/posts/daddio/",
+      "date": "2026-02-20T04:49:52.727251"
+    },
+    {
+      "imdb_id": "tt13968252",
+      "title": "Eyes of Wakanda",
+      "moods": [
+        "Existential",
+        "Heroic",
+        "Flawed"
+      ],
+      "url": "/posts/eyes-of-wakanda/",
+      "date": "2026-02-20T04:50:13.714947"
     }
   ]
 }
