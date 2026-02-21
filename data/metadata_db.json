@@ -879,6 +879,28 @@
       ],
       "url": "/posts/mindhunter/",
       "date": "2026-02-21T04:29:56.911787"
+    },
+    {
+      "imdb_id": "tt0195714",
+      "title": "Final Destination",
+      "moods": [
+        "Existential",
+        "Flawed",
+        "Intense"
+      ],
+      "url": "/posts/final-destination/",
+      "date": "2026-02-21T12:54:16.100028"
+    },
+    {
+      "imdb_id": "tt5753856",
+      "title": "Dark",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Intense"
+      ],
+      "url": "/posts/dark/",
+      "date": "2026-02-21T12:54:34.563242"
     }
   ]
 }
