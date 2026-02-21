@@ -857,6 +857,28 @@
       ],
       "url": "/posts/landman/",
       "date": "2026-02-20T13:06:22.021479"
+    },
+    {
+      "imdb_id": "tt5108870",
+      "title": "Morbius",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/morbius/",
+      "date": "2026-02-21T04:29:35.150477"
+    },
+    {
+      "imdb_id": "tt5290382",
+      "title": "Mindhunter",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/mindhunter/",
+      "date": "2026-02-21T04:29:56.911787"
     }
   ]
 }
