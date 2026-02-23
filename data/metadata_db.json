@@ -923,6 +923,28 @@
       ],
       "url": "/posts/true-detective/",
       "date": "2026-02-23T05:08:44.207367"
+    },
+    {
+      "imdb_id": "tt8302918",
+      "title": "Kaathu Vaakula Rendu Kaadhal",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Romantic"
+      ],
+      "url": "/posts/kaathu-vaakula-rendu-kaadhal/",
+      "date": "2026-02-23T13:11:50.842794"
+    },
+    {
+      "imdb_id": "tt1312171",
+      "title": "The Umbrella Academy",
+      "moods": [
+        "Existential",
+        "Flawed",
+        "Divisive"
+      ],
+      "url": "/posts/the-umbrella-academy/",
+      "date": "2026-02-23T13:12:10.603140"
     }
   ]
 }
