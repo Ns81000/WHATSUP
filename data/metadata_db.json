@@ -901,6 +901,28 @@
       ],
       "url": "/posts/dark/",
       "date": "2026-02-21T12:54:34.563242"
+    },
+    {
+      "imdb_id": "tt1684562",
+      "title": "The Fall Guy",
+      "moods": [
+        "Heroic",
+        "Flawed",
+        "Romantic"
+      ],
+      "url": "/posts/the-fall-guy/",
+      "date": "2026-02-23T05:08:27.161704"
+    },
+    {
+      "imdb_id": "tt2356777",
+      "title": "True Detective",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Melancholy"
+      ],
+      "url": "/posts/true-detective/",
+      "date": "2026-02-23T05:08:44.207367"
     }
   ]
 }
