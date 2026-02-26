@@ -1055,6 +1055,28 @@
       ],
       "url": "/posts/berlin/",
       "date": "2026-02-26T04:57:33.580418"
+    },
+    {
+      "imdb_id": "tt0477348",
+      "title": "No Country for Old Men",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Melancholy"
+      ],
+      "url": "/posts/no-country-for-old-men/",
+      "date": "2026-02-26T13:08:49.124763"
+    },
+    {
+      "imdb_id": "tt9561862",
+      "title": "Love, Death & Robots",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/love-death-robots/",
+      "date": "2026-02-26T13:09:11.913968"
     }
   ]
 }
