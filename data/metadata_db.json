@@ -1033,6 +1033,28 @@
       ],
       "url": "/posts/the-freelancer/",
       "date": "2026-02-25T13:14:11.043968"
+    },
+    {
+      "imdb_id": "tt1273235",
+      "title": "A Serbian Film",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/a-serbian-film/",
+      "date": "2026-02-26T04:57:11.717297"
+    },
+    {
+      "imdb_id": "tt16288804",
+      "title": "Berlin",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/berlin/",
+      "date": "2026-02-26T04:57:33.580418"
     }
   ]
 }
