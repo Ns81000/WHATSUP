@@ -1077,6 +1077,28 @@
       ],
       "url": "/posts/love-death-robots/",
       "date": "2026-02-26T13:09:11.913968"
+    },
+    {
+      "imdb_id": "tt1431045",
+      "title": "Deadpool",
+      "moods": [
+        "Divisive",
+        "Existential",
+        "Flawed"
+      ],
+      "url": "/posts/deadpool/",
+      "date": "2026-02-27T04:32:38.927507"
+    },
+    {
+      "imdb_id": "tt4052886",
+      "title": "Lucifer",
+      "moods": [
+        "Existential",
+        "Flawed",
+        "Hopeful"
+      ],
+      "url": "/posts/lucifer/",
+      "date": "2026-02-27T04:33:00.358438"
     }
   ]
 }
