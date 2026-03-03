@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt0121766",
-      "title": "Star Wars: Episode III - Revenge of the Sith",
-      "moods": [
-        "Existential",
-        "Melancholy",
-        "Intense"
-      ],
-      "url": "/posts/star-wars-episode-iii-revenge-of-the-sith/",
-      "date": "2026-02-05T04:57:06.988860"
-    },
-    {
-      "imdb_id": "tt4574334",
-      "title": "Stranger Things",
-      "moods": [
-        "Existential",
-        "Nostalgic",
-        "Intense"
-      ],
-      "url": "/posts/stranger-things/",
-      "date": "2026-02-05T04:57:27.620642"
-    },
-    {
       "imdb_id": "tt2631186",
       "title": "Baahubali: The Beginning",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/loki/",
       "date": "2026-03-03T04:57:26.256178"
+    },
+    {
+      "imdb_id": "tt11314148",
+      "title": "Shiddat",
+      "moods": [
+        "Romantic",
+        "Flawed",
+        "Divisive"
+      ],
+      "url": "/posts/shiddat/",
+      "date": "2026-03-03T12:54:36.513023"
+    },
+    {
+      "imdb_id": "tt8550800",
+      "title": "The Outsider",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Divisive"
+      ],
+      "url": "/posts/the-outsider/",
+      "date": "2026-03-03T12:55:00.533906"
     }
   ]
 }
