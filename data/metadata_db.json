@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt9813792",
-      "title": "From",
-      "moods": [
-        "Existential",
-        "Intense",
-        "Divisive"
-      ],
-      "url": "/posts/from/",
-      "date": "2026-02-07T12:25:24.554786"
-    },
-    {
-      "imdb_id": "tt6485666",
-      "title": "Mersal",
-      "moods": [
-        "Controversial",
-        "Intense",
-        "Divisive"
-      ],
-      "url": "/posts/mersal/",
-      "date": "2026-02-07T16:29:34.766355"
-    },
-    {
       "imdb_id": "tt1399664",
       "title": "The Night Manager",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/citadel-diana/",
       "date": "2026-03-09T04:59:10.324584"
+    },
+    {
+      "imdb_id": "tt0073707",
+      "title": "Sholay",
+      "moods": [
+        "Heroic",
+        "Existential",
+        "Nostalgic"
+      ],
+      "url": "/posts/sholay/",
+      "date": "2026-03-09T13:09:37.587806"
+    },
+    {
+      "imdb_id": "tt15435876",
+      "title": "The Penguin",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Flawed"
+      ],
+      "url": "/posts/the-penguin/",
+      "date": "2026-03-09T13:10:00.180288"
     }
   ]
 }
