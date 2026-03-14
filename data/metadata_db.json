@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt10466872",
-      "title": "Dune: Prophecy",
-      "moods": [
-        "Existential",
-        "Dystopian",
-        "Controversial"
-      ],
-      "url": "/posts/dune-prophecy/",
-      "date": "2026-02-11T13:04:53.987098"
-    },
-    {
-      "imdb_id": "tt22408160",
-      "title": "Kinds of Kindness",
-      "moods": [
-        "Divisive",
-        "Existential",
-        "Surreal"
-      ],
-      "url": "/posts/kinds-of-kindness/",
-      "date": "2026-02-12T05:06:47.638150"
-    },
-    {
       "imdb_id": "tt11912196",
       "title": "Asur: Welcome to Your Dark Side",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/ms-marvel/",
       "date": "2026-03-13T13:11:13.825142"
+    },
+    {
+      "imdb_id": "tt2872718",
+      "title": "Nightcrawler",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/nightcrawler/",
+      "date": "2026-03-14T04:30:27.158199"
+    },
+    {
+      "imdb_id": "tt2707408",
+      "title": "Narcos",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Controversial"
+      ],
+      "url": "/posts/narcos/",
+      "date": "2026-03-14T04:30:54.538737"
     }
   ]
 }
