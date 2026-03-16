@@ -1,0 +1,42 @@
+{
+  "movie": {
+    "Position": 101,
+    "Const": "tt3498820",
+    "Created": "2024-04-20",
+    "Modified": "2024-04-20",
+    "Description": NaN,
+    "Title": "Captain America: Civil War",
+    "Original Title": "Captain America: Civil War",
+    "URL": "https://www.imdb.com/title/tt3498820/",
+    "Title Type": "Movie",
+    "IMDb Rating": 7.8,
+    "Runtime (mins)": 147,
+    "Year": 2016,
+    "Genres": "Action, Sci-Fi",
+    "Num Votes": 917169,
+    "Release Date": "2016-05-06",
+    "Directors": "Anthony Russo, Joe Russo",
+    "Your Rating": NaN,
+    "Date Rated": NaN
+  },
+  "series": {
+    "Position": 65,
+    "Const": "tt35064818",
+    "Created": "2025-01-26",
+    "Modified": "2025-01-26",
+    "Description": NaN,
+    "Title": "Black Warrant",
+    "Original Title": "Black Warrant",
+    "URL": "https://www.imdb.com/title/tt35064818/",
+    "Title Type": "TV Series",
+    "IMDb Rating": 7.9,
+    "Runtime (mins)": 45.0,
+    "Year": 2025,
+    "Genres": "Crime, Drama",
+    "Num Votes": 8053,
+    "Release Date": "2025-01-10",
+    "Directors": NaN,
+    "Your Rating": NaN,
+    "Date Rated": NaN
+  }
+}
