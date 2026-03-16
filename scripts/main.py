@@ -581,19 +581,6 @@ def save_queued_items(movie, series):
         print(f"   📺 Series: {series['Title']} ({series['Year']})")
 
 
-def check_image_availability(imdb_id):
-    """Check if TMDB has high-quality images for an item."""
-    tmdb_data, _ = fetch_tmdb_data(imdb_id)
-    
-    if not tmdb_data:
-        return False
-    
-    backdrops = tmdb_data.get('images', {}).get('backdrops', [])
-    
-    # Check for hero-quality image (width >= 1920)
-    hero_quality = any(img.get('width', 0) >= 1920 for img in backdrops)
-    
-    return hero_quality
 
 
 def get_streaming_providers(tmdb_data, country='US'):
@@ -1145,68 +1132,6 @@ def wait_for_telegram_photo(timeout_minutes=30):
     return None, None
 
 
-def delete_telegram_message(message_id):
-    """Delete a single message from Telegram."""
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        return False
-    
-    delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteMessage"
-    try:
-        response = requests.post(delete_url, json={
-            'chat_id': TELEGRAM_CHAT_ID,
-            'message_id': message_id
-        }, timeout=10)
-        result = response.json()
-        if result.get('ok'):
-            return True
-        return False
-    except Exception:
-        return False
-
-
-def delete_all_telegram_messages():
-    """Delete all recent messages in the Telegram chat to keep it clean.
-    Fetches up to 100 recent updates and deletes each message.
-    Silently skips messages that can't be deleted (too old, no permission, etc.).
-    """
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        return 0
-    
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
-    deleted = 0
-    
-    try:
-        response = requests.get(url, params={'limit': 100}, timeout=30)
-        updates = response.json().get('result', [])
-        
-        if not updates:
-            return 0
-        
-        print(f"🗑️ Cleaning up Telegram chat ({len(updates)} messages)...")
-        
-        for update in updates:
-            message = update.get('message', {})
-            msg_id = message.get('message_id')
-            if msg_id:
-                if delete_telegram_message(msg_id):
-                    deleted += 1
-        
-        # Acknowledge all updates so they won't reappear
-        last_update_id = updates[-1].get('update_id', 0)
-        try:
-            requests.get(url, params={'offset': last_update_id + 1, 'limit': 1}, timeout=10)
-        except Exception:
-            pass
-        
-        if deleted > 0:
-            print(f"🗑️ Deleted {deleted} message(s) from Telegram")
-        else:
-            print("🗑️ No messages could be deleted (bot may need admin rights)")
-        
-    except Exception as e:
-        print(f"⚠️ Telegram cleanup error: {e}")
-    
-    return deleted
 
 
 def send_telegram_message(message):
@@ -1233,130 +1158,46 @@ def send_telegram_message(message):
         return None
 
 
-def check_telegram_for_uploads(imdb_id):
-    """Check Telegram for images with matching caption tokens."""
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        return {}
-    
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
-    
-    try:
-        response = requests.get(url, timeout=30)
-        updates = response.json().get('result', [])
-    except requests.RequestException:
-        return {}
-    
-    downloaded_images = {}
-    message_ids_to_delete = []
-    
-    for update in updates:
-        message = update.get('message', {})
-        caption = (message.get('caption') or '').strip()
-        
-        # Check if caption contains our token
-        if f"_{imdb_id}" in caption:
-            # Try photo first (compressed upload), then document (file upload)
-            file_id = None
-            photos = message.get('photo', [])
-            if photos:
-                file_id = photos[-1]['file_id']  # Highest resolution
-            elif message.get('document'):
-                doc = message['document']
-                mime = doc.get('mime_type', '')
-                if mime.startswith('image/'):
-                    file_id = doc['file_id']
-            
-            if file_id:
-                # Get file path
-                file_info_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile"
-                file_info = requests.get(file_info_url, params={'file_id': file_id}).json()
-                
-                file_path = file_info.get('result', {}).get('file_path')
-                if file_path:
-                    file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
-                    image_data = download_image(file_url)
-                    
-                    if image_data:
-                        if caption.upper().startswith('HERO_'):
-                            downloaded_images['hero'] = image_data
-                        elif caption.upper().startswith('IMG1_'):
-                            downloaded_images['img1'] = image_data
-                        elif caption.upper().startswith('IMG2_'):
-                            downloaded_images['img2'] = image_data
-                        elif caption.upper().startswith('IMG3_'):
-                            downloaded_images['img3'] = image_data
-                        
-                        message_ids_to_delete.append(message['message_id'])
-    
-    # Clean up ALL Telegram messages after downloading images
-    # (keeps the chat clean for next run)
-    if downloaded_images:
-        print(f"📥 Downloaded {len(downloaded_images)} images from Telegram")
-        delete_all_telegram_messages()
-    
-    return downloaded_images
-
-
-def trigger_manual_fallback(imdb_id, title):
-    """Send alerts for manual image upload."""
-    
-    # Telegram alert
-    telegram_msg = f"""
-🎬 *Manual Upload Required*
-
-*Title:* {title}
-*IMDb ID:* {imdb_id}
-
-📸 *Upload Images with These Captions:*
-
-1️⃣ `HERO_{imdb_id}` _(Landscape/Backdrop - REQUIRED)_
-2️⃣ `IMG1_{imdb_id}` _(Optional)_
-3️⃣ `IMG2_{imdb_id}` _(Optional)_
-4️⃣ `IMG3_{imdb_id}` _(Optional)_
-
-⏰ *Deadline:* Before next scheduled run (~6 hours)
-
-_Reply with your photos. They will be processed automatically._
-"""
+def notify_published_without_images(title, post_url):
+    """Notify admin that a post was published without images."""
+    telegram_msg = (
+        f"⚠️ *Post Published Without Images*\n\n"
+        f"*Title:* {title}\n"
+        f"*Post URL:* {post_url}\n\n"
+        f"_No images were available from TMDB at publish time._"
+    )
     send_telegram_message(telegram_msg)
-    
-    # Email alert
+
     if SMTP_EMAIL and SMTP_PASSWORD and NOTIFICATION_EMAIL:
         try:
             msg = MIMEMultipart('alternative')
-            msg['Subject'] = f"🎬 Action Required: Image Missing for {title}"
+            msg['Subject'] = f"⚠️ Post Published Without Images: {title}"
             msg['From'] = SMTP_EMAIL
             msg['To'] = NOTIFICATION_EMAIL
-            
+
             html = f"""
             <html>
             <body>
-                <h2>⚠️ Manual Image Upload Required</h2>
+                <h2>⚠️ Post Published Without Images</h2>
                 <p><strong>Title:</strong> {title}</p>
-                <p><strong>IMDb ID:</strong> {imdb_id}</p>
-                <hr>
-                <p>Please check your Telegram and upload the required images.</p>
-                <p>Tokens to use as captions:</p>
-                <ul>
-                    <li><code>HERO_{imdb_id}</code> - Required landscape image</li>
-                    <li><code>IMG1_{imdb_id}</code> - Optional</li>
-                    <li><code>IMG2_{imdb_id}</code> - Optional</li>
-                    <li><code>IMG3_{imdb_id}</code> - Optional</li>
-                </ul>
+                <p><strong>Post URL:</strong> <a href="{post_url}">{post_url}</a></p>
+                <p>No images were available from TMDB at publish time.</p>
             </body>
             </html>
             """
             msg.attach(MIMEText(html, 'html'))
-            
+
             with smtplib.SMTP("smtp.gmail.com", 587) as server:
                 server.starttls()
                 server.login(SMTP_EMAIL, SMTP_PASSWORD)
                 server.sendmail(SMTP_EMAIL, NOTIFICATION_EMAIL, msg.as_string())
-            
-            print("✉️ Email alert sent")
+
+            print("✉️ No-image notification email sent")
         except Exception as e:
             print(f"⚠️ Email error: {e}")
 
+
+# ==================== GEMINI CONTENT GENERATION ====================
 
 # ==================== GEMINI CONTENT GENERATION ====================
 
@@ -2258,31 +2099,11 @@ def process_item(item_data, media_type_label):
     print(f"   IMDb ID: {imdb_id}")
     print('='*60)
     
-    # Step 1: Check Telegram for manual uploads first
-    print("\n🔍 Checking Telegram for manual uploads...")
-    telegram_images = check_telegram_for_uploads(imdb_id)
-    
     images = None
     tmdb_data = None
     media_type = 'movie' if media_type_label == 'Movie' else 'tv'
-    
-    if telegram_images:
-        # Process Telegram images
-        print(f"✅ Found {len(telegram_images)} images from Telegram!")
-        images = []
-        
-        for img_type, img_data in telegram_images.items():
-            if img_type == 'hero':
-                output_path = IMAGES_DIR / f"{imdb_id}_hero.webp"
-                if process_and_save_image(img_data, output_path, HERO_MAX_SIZE_KB, HERO_TARGET_WIDTH):
-                    images.append(('hero', str(output_path.relative_to(ROOT_DIR))))
-            else:
-                idx = img_type[-1]  # img1, img2, img3
-                output_path = IMAGES_DIR / f"{imdb_id}_{idx}.webp"
-                if process_and_save_image(img_data, output_path, BODY_MAX_SIZE_KB, BODY_TARGET_WIDTH):
-                    images.append((img_type, str(output_path.relative_to(ROOT_DIR))))
-    
-    # Step 2: Fetch TMDB data
+
+    # Step 1: Fetch TMDB data
     print("\n📥 Fetching TMDB data...")
     tmdb_data, detected_type = fetch_tmdb_data(imdb_id)
     
@@ -2296,8 +2117,8 @@ def process_item(item_data, media_type_label):
     else:
         print("   ⚠️ No TMDB data found - will use Gemini web search")
     
-    # Step 3: Download TMDB images if we don't have Telegram images
-    if not images and tmdb_data:
+    # Step 2: Download TMDB images
+    if tmdb_data:
         print("\n📸 Downloading TMDB images...")
         images = download_and_process_images(tmdb_data, imdb_id)
     
@@ -2310,7 +2131,7 @@ def process_item(item_data, media_type_label):
     else:
         print(f"   ✓ {image_count} image(s) ready for embedding")
     
-    # Step 4: Generate content with Gemini
+    # Step 3: Generate content with Gemini
     print("\n✍️ Generating philosophical content with Gemini...")
     content = generate_blog_post(item_data, tmdb_data, media_type, has_images, image_count)
     
@@ -2335,7 +2156,7 @@ def process_item(item_data, media_type_label):
     print("   ✓ Sanitizing title field...")
     content = sanitize_title_in_content(content)
     
-    # Step 5: Save the post
+    # Step 4: Save the post
     POSTS_DIR.mkdir(parents=True, exist_ok=True)
     
     # Create filename-safe title (year suffix prevents same-title collisions, e.g. remakes)
@@ -2358,14 +2179,17 @@ def process_item(item_data, media_type_label):
     
     print(f"\n✅ Post saved: {filepath.name}")
     
-    # Step 6: Update history and metadata
+    # Step 5: Update history and metadata
     save_to_history(imdb_id, title)
     
     moods = extract_moods_from_content(content)
     post_url = f"/posts/{clean_title}/"
     update_metadata(imdb_id, title, moods, post_url)
-    
-    # Step 7: Remove from CSV to prevent re-selection
+
+    if not has_images:
+        notify_published_without_images(title, post_url)
+
+    # Step 6: Remove from CSV to prevent re-selection
     # Use TMDB-detected media_type (not the caller's label) since the "series"
     # slot may hold a movie when series CSV is depleted
     csv_type = media_type  # 'movie' or 'tv' (from TMDB detection or initial guess)
@@ -2374,40 +2198,7 @@ def process_item(item_data, media_type_label):
     return True
 
 
-def pre_check_next_items(next_movie, next_series):
-    """Pre-check image availability for next scheduled items."""
-    
-    print("\n" + "="*60)
-    print("🔮 PRE-CHECK: Verifying next items have images")
-    print("="*60)
-    
-    items_to_alert = []
-    
-    if next_movie:
-        print(f"\n🎬 Checking next movie: {next_movie['Title']}")
-        if not check_image_availability(next_movie['Const']):
-            print(f"   ⚠️ No high-quality images found!")
-            items_to_alert.append(('Movie', next_movie))
-        else:
-            print(f"   ✓ Images available")
-    
-    if next_series:
-        print(f"\n📺 Checking next series: {next_series['Title']}")
-        if not check_image_availability(next_series['Const']):
-            print(f"   ⚠️ No high-quality images found!")
-            items_to_alert.append(('Series', next_series))
-        else:
-            print(f"   ✓ Images available")
-    
-    # Trigger alerts for items without images
-    for media_type, item in items_to_alert:
-        print(f"\n🚨 Triggering manual fallback for: {item['Title']}")
-        trigger_manual_fallback(item['Const'], item['Title'])
-    
-    return len(items_to_alert) == 0  # Return True if all have images
-
-
-# ==================== MAIN ENTRY POINT ====================
+# ==================== MAIN ENTRY POINT ====================# ==================== MAIN ENTRY POINT ====================
 
 def main():
     """Main execution flow."""
@@ -2468,15 +2259,10 @@ def main():
         print("   Check that your CSV files have unprocessed entries.")
         return
     
-    # Pre-check next items (Early Warning System)
-    all_have_images = pre_check_next_items(next_movie, next_series)
-    
-    # Save next items to queue if they passed image check
-    if all_have_images and (next_movie or next_series):
+    # Queue next items for the following run
+    if next_movie or next_series:
         save_queued_items(next_movie, next_series)
-    elif not all_have_images:
-        print("   ⚠️ Next items failed image check - NOT queued")
-    
+
     # Process current items
     success_count = 0
     
