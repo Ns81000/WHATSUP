@@ -390,7 +390,20 @@ def select_items():
     # Try to load queued items from previous run
     print("\n🔄 Checking for queued items from previous run...")
     queued_movie, queued_series = load_queued_items()
-    
+
+    # Immediately delete the queue file after loading so stale data never persists
+    queue_file = DATA_DIR / 'processing_queue.json'
+    if queue_file.exists():
+        queue_file.unlink()
+
+    # Discard queued items that have already been processed (stale queue guard)
+    if queued_movie and queued_movie.get('Const') in history:
+        print(f"   ⚠️ Queued movie '{queued_movie['Title']}' already processed — discarding stale queue entry")
+        queued_movie = None
+    if queued_series and queued_series.get('Const') in history:
+        print(f"   ⚠️ Queued series '{queued_series['Title']}' already processed — discarding stale queue entry")
+        queued_series = None
+
     # Check if series CSV is depleted
     series_depleted = available_series.empty
     
@@ -2325,11 +2338,21 @@ def process_item(item_data, media_type_label):
     # Step 5: Save the post
     POSTS_DIR.mkdir(parents=True, exist_ok=True)
     
-    # Create filename-safe title
-    clean_title = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')[:50]
+    # Create filename-safe title (year suffix prevents same-title collisions, e.g. remakes)
+    year_str = str(int(item_data['Year'])) if item_data.get('Year') else ''
+    year_suffix = f'-{year_str}' if year_str else ''
+    base_slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')[:50 - len(year_suffix)]
+    clean_title = base_slug + year_suffix
+
+    # Guard: refuse to create a duplicate post for the same title slug
+    existing_posts = list(POSTS_DIR.glob(f"*-{clean_title}.md"))
+    if existing_posts:
+        print(f"\n⚠️ Post already exists for '{title}' ({existing_posts[0].name}) — skipping duplicate")
+        return False
+
     filename = f"{datetime.now().strftime('%Y-%m-%d')}-{clean_title}.md"
     filepath = POSTS_DIR / filename
-    
+
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(content)
     
