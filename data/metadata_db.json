@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt9018736",
-      "title": "Avatar: The Last Airbender",
-      "moods": [
-        "Flawed",
-        "Divisive",
-        "Existential"
-      ],
-      "url": "/posts/avatar-the-last-airbender/",
-      "date": "2026-02-16T13:13:02.348164"
-    },
-    {
-      "imdb_id": "tt6146586",
-      "title": "John Wick: Chapter 3 - Parabellum",
-      "moods": [
-        "Intense",
-        "Existential",
-        "Flawed"
-      ],
-      "url": "/posts/john-wick-chapter-3-parabellum/",
-      "date": "2026-02-17T04:59:29.023763"
-    },
-    {
       "imdb_id": "tt9140560",
       "title": "WandaVision",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/choona-2023/",
       "date": "2026-03-17T13:17:34.314803"
+    },
+    {
+      "imdb_id": "tt1872181",
+      "title": "The Amazing Spider-Man 2",
+      "moods": [
+        "Flawed",
+        "Existential",
+        "Melancholy"
+      ],
+      "url": "/posts/the-amazing-spider-man-2-2014/",
+      "date": "2026-03-18T04:52:36.324990"
+    },
+    {
+      "imdb_id": "tt2788316",
+      "title": "Shōgun",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Cerebral"
+      ],
+      "url": "/posts/sh-gun-2024/",
+      "date": "2026-03-18T04:53:00.566343"
     }
   ]
 }
