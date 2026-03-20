@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt13157618",
-      "title": "Secret Invasion",
-      "moods": [
-        "Divisive",
-        "Flawed",
-        "Existential"
-      ],
-      "url": "/posts/secret-invasion/",
-      "date": "2026-02-19T04:58:30.219890"
-    },
-    {
-      "imdb_id": "tt28863512",
-      "title": "The Bad Guys: A Very Bad Holiday",
-      "moods": [
-        "Flawed",
-        "Hopeful",
-        "Existential"
-      ],
-      "url": "/posts/the-bad-guys-a-very-bad-holiday/",
-      "date": "2026-02-19T13:04:34.396195"
-    },
-    {
       "imdb_id": "tt13159924",
       "title": "Gen V",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/special-ops-1-5-the-himmat-story-2021/",
       "date": "2026-03-20T04:54:11.764574"
+    },
+    {
+      "imdb_id": "tt26548265",
+      "title": "Maharaja",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Flawed"
+      ],
+      "url": "/posts/maharaja-2024/",
+      "date": "2026-03-20T13:03:20.739899"
+    },
+    {
+      "imdb_id": "tt13668894",
+      "title": "The Book of Boba Fett",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/the-book-of-boba-fett-2021/",
+      "date": "2026-03-20T13:03:44.349346"
     }
   ]
 }
