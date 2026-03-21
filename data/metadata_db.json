@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt13968252",
-      "title": "Eyes of Wakanda",
-      "moods": [
-        "Existential",
-        "Heroic",
-        "Flawed"
-      ],
-      "url": "/posts/eyes-of-wakanda/",
-      "date": "2026-02-20T04:50:13.714947"
-    },
-    {
-      "imdb_id": "tt11235772",
-      "title": "The Voyeurs",
-      "moods": [
-        "Existential",
-        "Flawed",
-        "Divisive"
-      ],
-      "url": "/posts/the-voyeurs/",
-      "date": "2026-02-20T13:05:59.985539"
-    },
-    {
       "imdb_id": "tt14186672",
       "title": "Landman",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/dark-matter-2024/",
       "date": "2026-03-21T04:37:40.993833"
+    },
+    {
+      "imdb_id": "tt0075314",
+      "title": "Taxi Driver",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Divisive"
+      ],
+      "url": "/posts/taxi-driver-1976/",
+      "date": "2026-03-21T13:01:33.967838"
+    },
+    {
+      "imdb_id": "tt16350094",
+      "title": "The Boys Presents: Diabolical",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/the-boys-presents-diabolical-2022/",
+      "date": "2026-03-21T13:01:53.781782"
     }
   ]
 }
