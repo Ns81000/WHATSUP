@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt5290382",
-      "title": "Mindhunter",
-      "moods": [
-        "Cerebral",
-        "Existential",
-        "Divisive"
-      ],
-      "url": "/posts/mindhunter/",
-      "date": "2026-02-21T04:29:56.911787"
-    },
-    {
-      "imdb_id": "tt0195714",
-      "title": "Final Destination",
-      "moods": [
-        "Existential",
-        "Flawed",
-        "Intense"
-      ],
-      "url": "/posts/final-destination/",
-      "date": "2026-02-21T12:54:16.100028"
-    },
-    {
       "imdb_id": "tt5753856",
       "title": "Dark",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/the-mandalorian-2019/",
       "date": "2026-03-23T05:00:16.905538"
+    },
+    {
+      "imdb_id": "tt7979580",
+      "title": "The Mitchells vs. the Machines",
+      "moods": [
+        "Hopeful",
+        "Existential",
+        "Cerebral"
+      ],
+      "url": "/posts/the-mitchells-vs-the-machines-2021/",
+      "date": "2026-03-23T13:03:43.485360"
+    },
+    {
+      "imdb_id": "tt6741278",
+      "title": "Invincible",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Heroic"
+      ],
+      "url": "/posts/invincible-2021/",
+      "date": "2026-03-23T13:04:04.510469"
     }
   ]
 }
