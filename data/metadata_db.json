@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt16288804",
-      "title": "Berlin",
-      "moods": [
-        "Flawed",
-        "Divisive",
-        "Existential"
-      ],
-      "url": "/posts/berlin/",
-      "date": "2026-02-26T04:57:33.580418"
-    },
-    {
-      "imdb_id": "tt0477348",
-      "title": "No Country for Old Men",
-      "moods": [
-        "Existential",
-        "Intense",
-        "Melancholy"
-      ],
-      "url": "/posts/no-country-for-old-men/",
-      "date": "2026-02-26T13:08:49.124763"
-    },
-    {
       "imdb_id": "tt9561862",
       "title": "Love, Death & Robots",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/the-signal-2024/",
       "date": "2026-03-27T05:13:08.939538"
+    },
+    {
+      "imdb_id": "tt12300742",
+      "title": "Bugonia",
+      "moods": [
+        "Divisive",
+        "Existential",
+        "Surreal"
+      ],
+      "url": "/posts/bugonia-2025/",
+      "date": "2026-03-27T13:17:39.420867"
+    },
+    {
+      "imdb_id": "tt9319668",
+      "title": "1899",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/1899-2022/",
+      "date": "2026-03-27T13:17:59.474755"
     }
   ]
 }
