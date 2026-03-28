@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt4052886",
-      "title": "Lucifer",
-      "moods": [
-        "Existential",
-        "Flawed",
-        "Hopeful"
-      ],
-      "url": "/posts/lucifer/",
-      "date": "2026-02-27T04:33:00.358438"
-    },
-    {
-      "imdb_id": "tt0765010",
-      "title": "Brothers",
-      "moods": [
-        "Flawed",
-        "Divisive",
-        "Existential"
-      ],
-      "url": "/posts/brothers/",
-      "date": "2026-02-27T13:06:58.989803"
-    },
-    {
       "imdb_id": "tt13365348",
       "title": "Archive 81",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/amazing-stories-2020/",
       "date": "2026-03-28T05:06:17.616047"
+    },
+    {
+      "imdb_id": "tt9376612",
+      "title": "Shang-Chi and the Legend of the Ten Rings",
+      "moods": [
+        "Flawed",
+        "Existential",
+        "Heroic"
+      ],
+      "url": "/posts/shang-chi-and-the-legend-of-the-ten-rings-2021/",
+      "date": "2026-03-28T13:09:20.250756"
+    },
+    {
+      "imdb_id": "tt12262202",
+      "title": "The Acolyte",
+      "moods": [
+        "Divisive",
+        "Controversial",
+        "Existential"
+      ],
+      "url": "/posts/the-acolyte-2024/",
+      "date": "2026-03-28T13:09:42.251865"
     }
   ]
 }
