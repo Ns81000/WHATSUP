@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt8202612",
-      "title": "Satyameva Jayate",
-      "moods": [
-        "Flawed",
-        "Divisive",
-        "Existential"
-      ],
-      "url": "/posts/satyameva-jayate/",
-      "date": "2026-03-03T04:57:05.937674"
-    },
-    {
-      "imdb_id": "tt9140554",
-      "title": "Loki",
-      "moods": [
-        "Existential",
-        "Divisive",
-        "Cerebral"
-      ],
-      "url": "/posts/loki/",
-      "date": "2026-03-03T04:57:26.256178"
-    },
-    {
       "imdb_id": "tt11314148",
       "title": "Shiddat",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/dangal-2016/",
       "date": "2026-03-31T13:19:03.157153"
+    },
+    {
+      "imdb_id": "tt0082934",
+      "title": "The Postman Always Rings Twice",
+      "moods": [
+        "Intense",
+        "Existential",
+        "Divisive"
+      ],
+      "url": "/posts/the-postman-always-rings-twice-1981/",
+      "date": "2026-04-01T05:35:16.015640"
+    },
+    {
+      "imdb_id": "tt9362930",
+      "title": "Blue Beetle",
+      "moods": [
+        "Existential",
+        "Hopeful",
+        "Flawed"
+      ],
+      "url": "/posts/blue-beetle-2023/",
+      "date": "2026-04-01T05:35:41.653444"
     }
   ]
 }
