@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt11314148",
-      "title": "Shiddat",
-      "moods": [
-        "Romantic",
-        "Flawed",
-        "Divisive"
-      ],
-      "url": "/posts/shiddat/",
-      "date": "2026-03-03T12:54:36.513023"
-    },
-    {
-      "imdb_id": "tt8550800",
-      "title": "The Outsider",
-      "moods": [
-        "Existential",
-        "Intense",
-        "Divisive"
-      ],
-      "url": "/posts/the-outsider/",
-      "date": "2026-03-03T12:55:00.533906"
-    },
-    {
       "imdb_id": "tt9248934",
       "title": "Marjaavaan",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/blue-beetle-2023/",
       "date": "2026-04-01T05:35:41.653444"
+    },
+    {
+      "imdb_id": "tt0470752",
+      "title": "Ex Machina",
+      "moods": [
+        "Cerebral",
+        "Existential",
+        "Intense"
+      ],
+      "url": "/posts/ex-machina-2014/",
+      "date": "2026-04-01T13:32:26.798998"
+    },
+    {
+      "imdb_id": "tt9419884",
+      "title": "Doctor Strange in the Multiverse of Madness",
+      "moods": [
+        "Existential",
+        "Divisive",
+        "Intense"
+      ],
+      "url": "/posts/doctor-strange-in-the-multiverse-of-madness-2022/",
+      "date": "2026-04-01T13:32:46.607143"
     }
   ]
 }
