@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt1386697",
-      "title": "Suicide Squad",
-      "moods": [
-        "Flawed",
-        "Divisive",
-        "Existential"
-      ],
-      "url": "/posts/suicide-squad/",
-      "date": "2026-03-05T12:58:24.226809"
-    },
-    {
-      "imdb_id": "tt20600980",
-      "title": "Skeleton Crew",
-      "moods": [
-        "Existential",
-        "Hopeful",
-        "Cerebral"
-      ],
-      "url": "/posts/skeleton-crew/",
-      "date": "2026-03-05T12:58:50.665111"
-    },
-    {
       "imdb_id": "tt18411490",
       "title": "Tiger 3",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/the-attacks-of-26-11-2013/",
       "date": "2026-04-03T05:00:49.221790"
+    },
+    {
+      "imdb_id": "tt3402138",
+      "title": "The Naked Gun",
+      "moods": [
+        "Divisive",
+        "Nostalgic",
+        "Existential"
+      ],
+      "url": "/posts/the-naked-gun-2025/",
+      "date": "2026-04-03T13:11:09.933736"
+    },
+    {
+      "imdb_id": "tt2109248",
+      "title": "Transformers: Age of Extinction",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/transformers-age-of-extinction-2014/",
+      "date": "2026-04-03T13:11:30.792638"
     }
   ]
 }
