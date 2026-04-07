@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt0068646",
-      "title": "The Godfather",
-      "moods": [
-        "Intense",
-        "Existential",
-        "Melancholy"
-      ],
-      "url": "/posts/the-godfather/",
-      "date": "2026-03-09T04:58:46.794496"
-    },
-    {
-      "imdb_id": "tt22754212",
-      "title": "Citadel: Diana",
-      "moods": [
-        "Existential",
-        "Flawed",
-        "Divisive"
-      ],
-      "url": "/posts/citadel-diana/",
-      "date": "2026-03-09T04:59:10.324584"
-    },
-    {
       "imdb_id": "tt0073707",
       "title": "Sholay",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/sherlock-holmes-a-game-of-shadows-2011/",
       "date": "2026-04-06T13:21:10.098343"
+    },
+    {
+      "imdb_id": "tt6264654",
+      "title": "Free Guy",
+      "moods": [
+        "Existential",
+        "Hopeful",
+        "Flawed"
+      ],
+      "url": "/posts/free-guy-2021/",
+      "date": "2026-04-07T05:10:23.790110"
+    },
+    {
+      "imdb_id": "tt10886166",
+      "title": "365 Days",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Controversial"
+      ],
+      "url": "/posts/365-days-2020/",
+      "date": "2026-04-07T05:10:48.333913"
     }
   ]
 }
