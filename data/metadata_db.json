@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt1872181",
-      "title": "The Amazing Spider-Man 2",
-      "moods": [
-        "Flawed",
-        "Existential",
-        "Melancholy"
-      ],
-      "url": "/posts/the-amazing-spider-man-2-2014/",
-      "date": "2026-03-18T04:52:36.324990"
-    },
-    {
-      "imdb_id": "tt2788316",
-      "title": "Shōgun",
-      "moods": [
-        "Intense",
-        "Existential",
-        "Cerebral"
-      ],
-      "url": "/posts/sh-gun-2024/",
-      "date": "2026-03-18T04:53:00.566343"
-    },
-    {
       "imdb_id": "tt1259521",
       "title": "The Cabin in the Woods",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/k-g-f-chapter-2-2022/",
       "date": "2026-04-18T05:06:27.241537"
+    },
+    {
+      "imdb_id": "tt2461132",
+      "title": "Happy New Year",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/happy-new-year-2014/",
+      "date": "2026-04-18T12:58:44.856285"
+    },
+    {
+      "imdb_id": "tt15433956",
+      "title": "Hanu Man",
+      "moods": [
+        "Heroic",
+        "Flawed",
+        "Divisive"
+      ],
+      "url": "/posts/hanu-man-2024/",
+      "date": "2026-04-18T12:59:08.142751"
     }
   ]
 }
