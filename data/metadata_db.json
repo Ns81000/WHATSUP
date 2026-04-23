@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt26548265",
-      "title": "Maharaja",
-      "moods": [
-        "Intense",
-        "Existential",
-        "Flawed"
-      ],
-      "url": "/posts/maharaja-2024/",
-      "date": "2026-03-20T13:03:20.739899"
-    },
-    {
-      "imdb_id": "tt13668894",
-      "title": "The Book of Boba Fett",
-      "moods": [
-        "Flawed",
-        "Divisive",
-        "Existential"
-      ],
-      "url": "/posts/the-book-of-boba-fett-2021/",
-      "date": "2026-03-20T13:03:44.349346"
-    },
-    {
       "imdb_id": "tt4683366",
       "title": "Ghayal Once Again",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/werewolf-by-night-2022/",
       "date": "2026-04-22T05:25:10.934157"
+    },
+    {
+      "imdb_id": "tt11389872",
+      "title": "Kingdom of the Planet of the Apes",
+      "moods": [
+        "Existential",
+        "Dystopian",
+        "Flawed"
+      ],
+      "url": "/posts/kingdom-of-the-planet-of-the-apes-2024/",
+      "date": "2026-04-23T05:34:18.730242"
+    },
+    {
+      "imdb_id": "tt1172049",
+      "title": "Demolition",
+      "moods": [
+        "Flawed",
+        "Existential",
+        "Melancholy"
+      ],
+      "url": "/posts/demolition-2015/",
+      "date": "2026-04-23T05:34:42.452547"
     }
   ]
 }
