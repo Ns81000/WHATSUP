@@ -1,17 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt12300742",
-      "title": "Bugonia",
-      "moods": [
-        "Divisive",
-        "Existential",
-        "Surreal"
-      ],
-      "url": "/posts/bugonia-2025/",
-      "date": "2026-03-27T13:17:39.420867"
-    },
-    {
       "imdb_id": "tt9319668",
       "title": "1899",
       "moods": [
@@ -1099,6 +1088,17 @@
       ],
       "url": "/posts/a-house-of-dynamite-2025/",
       "date": "2026-05-01T13:23:05.993563"
+    },
+    {
+      "imdb_id": "tt0910970",
+      "title": "WALL·E",
+      "moods": [
+        "Existential",
+        "Dystopian",
+        "Hopeful"
+      ],
+      "url": "/posts/wall-e-2008/",
+      "date": "2026-05-02T05:44:38.232314"
     }
   ]
 }
