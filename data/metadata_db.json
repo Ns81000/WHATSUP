@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt11286314",
-      "title": "Don't Look Up",
-      "moods": [
-        "Divisive",
-        "Existential",
-        "Flawed"
-      ],
-      "url": "/posts/don-t-look-up-2021/",
-      "date": "2026-04-06T13:20:45.535126"
-    },
-    {
-      "imdb_id": "tt1515091",
-      "title": "Sherlock Holmes: A Game of Shadows",
-      "moods": [
-        "Intense",
-        "Divisive",
-        "Existential"
-      ],
-      "url": "/posts/sherlock-holmes-a-game-of-shadows-2011/",
-      "date": "2026-04-06T13:21:10.098343"
-    },
-    {
       "imdb_id": "tt6264654",
       "title": "Free Guy",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/final-destination-3-2006/",
       "date": "2026-05-13T06:24:50.372954"
+    },
+    {
+      "imdb_id": "tt0078748",
+      "title": "Alien",
+      "moods": [
+        "Existential",
+        "Intense",
+        "Controversial"
+      ],
+      "url": "/posts/alien-1979/",
+      "date": "2026-05-13T14:46:13.864666"
+    },
+    {
+      "imdb_id": "tt30253473",
+      "title": "Materialists",
+      "moods": [
+        "Existential",
+        "Romantic",
+        "Divisive"
+      ],
+      "url": "/posts/materialists-2025/",
+      "date": "2026-05-13T14:46:41.747199"
     }
   ]
 }
