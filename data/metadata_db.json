@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt17279496",
-      "title": "Civil War",
-      "moods": [
-        "Intense",
-        "Dystopian",
-        "Divisive"
-      ],
-      "url": "/posts/civil-war-2024/",
-      "date": "2026-04-06T05:18:48.125752"
-    },
-    {
-      "imdb_id": "tt33372494",
-      "title": "Lokah Chapter One: Chandra",
-      "moods": [
-        "Existential",
-        "Divisive",
-        "Intense"
-      ],
-      "url": "/posts/lokah-chapter-one-chandra-2025/",
-      "date": "2026-04-06T05:19:08.219732"
-    },
-    {
       "imdb_id": "tt11286314",
       "title": "Don't Look Up",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/salaar-2023/",
       "date": "2026-05-12T14:21:01.368491"
+    },
+    {
+      "imdb_id": "tt10062556",
+      "title": "Bhuj: The Pride of India",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Intense"
+      ],
+      "url": "/posts/bhuj-the-pride-of-india-2021/",
+      "date": "2026-05-13T06:24:27.551007"
+    },
+    {
+      "imdb_id": "tt0414982",
+      "title": "Final Destination 3",
+      "moods": [
+        "Flawed",
+        "Divisive",
+        "Existential"
+      ],
+      "url": "/posts/final-destination-3-2006/",
+      "date": "2026-05-13T06:24:50.372954"
     }
   ]
 }
