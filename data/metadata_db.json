@@ -1,28 +1,6 @@
 {
   "posts": [
     {
-      "imdb_id": "tt4873118",
-      "title": "The Covenant",
-      "moods": [
-        "Intense",
-        "Heroic",
-        "Existential"
-      ],
-      "url": "/posts/the-covenant-2023/",
-      "date": "2026-04-25T05:18:44.052594"
-    },
-    {
-      "imdb_id": "tt7181546",
-      "title": "Ballerina",
-      "moods": [
-        "Existential",
-        "Intense",
-        "Divisive"
-      ],
-      "url": "/posts/ballerina-2025/",
-      "date": "2026-04-25T05:19:06.536210"
-    },
-    {
       "imdb_id": "tt10366206",
       "title": "John Wick: Chapter 4",
       "moods": [
@@ -1099,6 +1077,28 @@
       ],
       "url": "/posts/fifty-shades-of-grey-2015/",
       "date": "2026-05-28T06:57:13.937127"
+    },
+    {
+      "imdb_id": "tt0365748",
+      "title": "Shaun of the Dead",
+      "moods": [
+        "Existential",
+        "Cerebral",
+        "Hopeful"
+      ],
+      "url": "/posts/shaun-of-the-dead-2004/",
+      "date": "2026-05-28T15:45:41.682493"
+    },
+    {
+      "imdb_id": "tt2005151",
+      "title": "War Dogs",
+      "moods": [
+        "Divisive",
+        "Flawed",
+        "Existential"
+      ],
+      "url": "/posts/war-dogs-2016/",
+      "date": "2026-05-28T15:46:03.082160"
     }
   ]
 }
