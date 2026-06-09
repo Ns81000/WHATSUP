@@ -67,6 +67,9 @@ This exploration of a **manufactured destiny** and the **moral ambiguities of he
 - Peacock Premium
 - Peacock Premium Plus
 
+![Scene from film](/assets/img/posts/tt4856322_3.webp){{ .rounded-10 w-75 .shadow }}
+_The depth of human experience captured in a single frame._
+
 ---
 
 *What's Up? explores the philosophical depths of cinema.*

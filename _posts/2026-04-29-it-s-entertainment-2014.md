@@ -51,4 +51,7 @@ The dog becomes a silent, innocent judge of human character. He reflects the ava
 
 *It's Entertainment* may have been a critical punching bag and a divisive film for audiences, often criticized for its loud comedy and convoluted plot. But in its very commitment to the outlandish, it stumbles upon a surprising amount of philosophical fodder. It's a testament to the idea that even the most "flawed" pieces of art can, through their very imperfections, spark profound questions about our humanity. It might not be a masterpiece, but it's certainly *something*. And that "something" is a chaotic, comedic, yet curiously poignant reflection on the human condition, always chasing fortunes, even those held by a golden retriever.
 
+![Scene from It's Entertainment](/assets/img/posts/tt2978626_3.webp){: .rounded-10 w-75 .shadow}
+_The depth of human experience captured in a single frame._
+
 *What's Up? explores the philosophical depths of cinema.*

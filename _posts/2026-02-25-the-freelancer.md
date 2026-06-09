@@ -62,4 +62,6 @@ The narrative also subtly touches on the **fragility of identity** when one is s
 Ultimately, *The Freelancer* might have its structural imperfections, and its narrative might occasionally stretch the bounds of belief for some, but its core philosophical inquiry remains potent. It's a story that compels us to look at the shadows of our world, not just with fear, but with a profound sense of shared humanity and the enduring, often solitary, struggle for light. It asks us to consider the price of freedom, the cost of courage, and the quiet, relentless will to reclaim what is lost, even when the world seems to have given up.
 
 ---
+![Scene from film](/assets/img/posts/tt28489281_3.webp){{ .rounded-10 w-75 .shadow }}
+_The depth of human experience captured in a single frame._
 *What's Up? explores the philosophical depths of cinema.*

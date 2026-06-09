@@ -59,4 +59,6 @@ The series, even imperfectly, explores the **ethics of creation** – the respon
 What does it truly mean to reclaim your life when your very being was designed by someone else?
 
 ---
+![Scene from film](/assets/img/posts/tt8289480_3.webp){{ .rounded-10 w-75 .shadow }}
+_The depth of human experience captured in a single frame._
 *What's Up? explores the philosophical depths of cinema.*

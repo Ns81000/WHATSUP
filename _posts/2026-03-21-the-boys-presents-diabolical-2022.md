@@ -60,6 +60,9 @@ What does it truly mean to be "diabolical" in a world that has already normalize
 - Amazon Prime Video
 - Amazon Prime Video with Ads
 
+![Scene from film](/assets/img/posts/tt16350094_3.webp){{ .rounded-10 w-75 .shadow }}
+_The depth of human experience captured in a single frame._
+
 ---
 
 *What's Up? explores the philosophical depths of cinema.*

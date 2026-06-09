@@ -60,4 +60,6 @@ But is the mastermind truly one individual, or is he a manifestation of a larger
 *Special OPS* might have had its imperfections—a plot that occasionally meandered, some narrative choices that drew mixed reactions—but its ambition and philosophical grounding are undeniable. It takes the familiar tropes of the spy thriller and elevates them, forcing us to confront the nature of truth, the profound personal cost of vigilance, and the unsettling possibility that the world's most dangerous threats are those we can barely perceive. It reminds us that even when the heroes win, the shadows often remain, waiting for the next architect of chaos to emerge. What does this relentless, invisible struggle ask of us, the observers, beyond mere entertainment?
 
 ---
+![Scene from film](/assets/img/posts/tt11854694_3.webp){{ .rounded-10 w-75 .shadow }}
+_The depth of human experience captured in a single frame._
 *What's Up? explores the philosophical depths of cinema.*

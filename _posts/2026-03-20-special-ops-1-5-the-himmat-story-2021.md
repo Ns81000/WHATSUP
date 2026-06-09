@@ -61,6 +61,9 @@ Ultimately, *Special Ops 1.5: The Himmat Story* is a valuable, albeit imperfect,
 ## Where to Watch
 - Disney+ Hotstar
 
+![Scene from film](/assets/img/posts/tt13899566_3.webp){{ .rounded-10 w-75 .shadow }}
+_The depth of human experience captured in a single frame._
+
 ---
 
 *What's Up? explores the philosophical depths of cinema.*
