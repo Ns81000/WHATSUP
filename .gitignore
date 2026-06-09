@@ -18,6 +18,7 @@ package-lock.json
 # IDE configurations
 .idea
 .vscode
+unhealthy_blogs_report.html
 
 # Misc
 _sass/vendors
